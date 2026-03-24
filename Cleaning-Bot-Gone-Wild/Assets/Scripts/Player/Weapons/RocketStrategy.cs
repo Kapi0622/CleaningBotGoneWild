@@ -71,7 +71,7 @@ namespace CleaningBot.Player.Weapons
             }
 
             // STEP 5 で本実装。現時点は NoOp（メソッドは存在する）
-            _floorGrid.ApplyDamage(hitPoint, _data.blastRadius, (int)_data.floorDamage);
+            _floorGrid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);
 
             await UniTask.Delay(200, cancellationToken: ct);
         }

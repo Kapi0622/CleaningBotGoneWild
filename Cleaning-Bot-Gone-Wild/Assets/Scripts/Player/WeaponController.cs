@@ -66,6 +66,9 @@ namespace CleaningBot.Player
             _useAction.Disable();
             _switchVacuum.Disable();
             _switchRocket.Disable();
+            _cts.Cancel();
+            _cts.Dispose();
+            _cts = new CancellationTokenSource(); // 再有効化に備えて新しい CTS を用意
         }
 
         /// <summary>
@@ -77,6 +80,10 @@ namespace CleaningBot.Player
             FloorGrid floorGrid,
             IReadOnlyList<WeaponData> weaponDataList)
         {
+            // Awake() の実行順序に依存しないよう、ここでも null チェックする
+            if (_audioSource == null)
+                _audioSource = GetComponent<AudioSource>();
+
             _locomotion = locomotion;
             _factory = new WeaponStrategyFactory(weaponDataList, floorGrid, transform, _audioSource);
             SwitchWeapon(WeaponType.Vacuum);
@@ -85,6 +92,7 @@ namespace CleaningBot.Player
         public void SwitchWeapon(WeaponType type)
         {
             _cts.Cancel();
+            _cts.Dispose();
             _cts = new CancellationTokenSource();
             _currentStrategy?.OnUnequip();
             _currentStrategy = _factory.Create(type);
@@ -106,6 +114,9 @@ namespace CleaningBot.Player
         {
             _cts.Cancel();
             _cts.Dispose();
+            _useAction.Dispose();
+            _switchVacuum.Dispose();
+            _switchRocket.Dispose();
         }
     }
 }

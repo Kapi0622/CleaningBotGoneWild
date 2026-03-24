@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,6 +28,7 @@ namespace CleaningBot.Player
         );
 
         private Rigidbody _rb;
+        private readonly HashSet<Collider> _groundContacts = new HashSet<Collider>();
         private bool _isGrounded;
         private Vector2 _moveInput;
 
@@ -112,10 +114,11 @@ namespace CleaningBot.Player
             }
         }
 
-        private void OnCollisionStay(Collision collision)
+        private void OnCollisionEnter(Collision collision)
         {
             if (((1 << collision.gameObject.layer) & _groundLayer) != 0)
             {
+                _groundContacts.Add(collision.collider);
                 _isGrounded = true;
             }
         }
@@ -124,7 +127,8 @@ namespace CleaningBot.Player
         {
             if (((1 << collision.gameObject.layer) & _groundLayer) != 0)
             {
-                _isGrounded = false;
+                _groundContacts.Remove(collision.collider);
+                _isGrounded = _groundContacts.Count > 0;
             }
         }
     }

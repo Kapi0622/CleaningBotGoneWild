@@ -12,6 +12,8 @@ namespace CleaningBot.Player.Weapons
     public class VacuumStrategy : IWeaponStrategy
     {
         private const float Range = 3f;
+        // 前方 90° の半球コーン（cos90° = 0）。背後のゴミは除去しない
+        private const float HalfConeCos = 0f;
         private static readonly int GarbageLayer = LayerMask.GetMask("Garbage");
 
         private readonly WeaponData _data;
@@ -37,6 +39,10 @@ namespace CleaningBot.Player.Weapons
             var hits = Physics.OverlapSphere(_origin.position, Range, GarbageLayer);
             foreach (var hit in hits)
             {
+                // 原点からターゲットへの方向と FacingDirection の内積で前方コーン判定
+                var toTarget = (hit.transform.position - _origin.position).normalized;
+                if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
+
                 if (hit.TryGetComponent<GarbageBase>(out var garbage))
                 {
                     garbage.Remove();
