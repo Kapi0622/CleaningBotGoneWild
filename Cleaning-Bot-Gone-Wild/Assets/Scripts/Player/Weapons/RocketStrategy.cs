@@ -54,9 +54,8 @@ namespace CleaningBot.Player.Weapons
 
             // Raycast で着弾点を決定。Environment（壁）にヒットしても着弾点は確定する
             var ray = new Ray(_origin.position, direction);
-            var hitPoint = Physics.Raycast(ray, out var hit, RayDistance, HitLayer)
-                ? hit.point
-                : _origin.position + direction * RayDistance;
+            bool didHit = Physics.Raycast(ray, out var hit, RayDistance, HitLayer);
+            var hitPoint = didHit ? hit.point : _origin.position + direction * RayDistance;
 
             // 着弾点の爆発範囲内にあるゴミを OverlapSphere で一括検出・除去
             // Raycast が壁に当たっても、壁際のゴミは爆風で消える
@@ -70,7 +69,6 @@ namespace CleaningBot.Player.Weapons
                 }
             }
 
-            // STEP 5 で本実装。現時点は NoOp（メソッドは存在する）
             _floorGrid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);
 
             await UniTask.Delay(200, cancellationToken: ct);

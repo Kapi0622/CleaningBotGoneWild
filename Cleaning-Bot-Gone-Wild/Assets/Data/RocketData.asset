@@ -15,5 +15,5 @@ MonoBehaviour:
   weaponType: 1
   cooldown: 3
   floorDamage: 1
-  blastRadius: 3
+  blastRadius: 5
   fireSound: {fileID: 0}
