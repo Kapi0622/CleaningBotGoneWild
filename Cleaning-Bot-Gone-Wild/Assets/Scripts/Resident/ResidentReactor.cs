@@ -17,24 +17,28 @@ namespace CleaningBot.Resident
         private Rigidbody     _rb;
         private ScoreModel    _scoreModel;
 
+        private void Awake()
+        {
+            _mover = GetComponent<ResidentMover>();
+            _rb    = GetComponent<Rigidbody>();
+        }
+
         public void Initialize(ScoreModel scoreModel)
         {
             _scoreModel = scoreModel;
-            _mover      = GetComponent<ResidentMover>();
-            _rb         = GetComponent<Rigidbody>();
         }
 
         /// <summary>武器の爆発・衝撃で呼ばれる。吹き飛び + SubScore 加算。</summary>
         public void OnHit(Vector3 forceDirection, float force)
         {
             _rb.AddForce(forceDirection * force, ForceMode.Impulse);
-            _scoreModel.AddSubScore(_subScoreValue);
+            _scoreModel?.AddSubScore(_subScoreValue);
             _mover.SetState(ResidentState.Hit);
-            Debug.Log($"[ResidentReactor] {name} hit! SubScore: {_scoreModel.SubScore.Value}");
+            Debug.Log($"[ResidentReactor] {name} hit! SubScore: {_scoreModel?.SubScore.Value ?? 0}");
         }
 
         /// <summary>近くで破壊武器が使用されたときに呼ばれる。プレイヤーから逃走する。</summary>
-        public void TriggerFlee(Vector3 blastPosition) => _mover.SetState(ResidentState.Flee);
+        public void TriggerFlee() => _mover.SetState(ResidentState.Flee);
 
         /// <summary>掃除機を向けられたときに呼ばれる。怒り状態（向き変え・移動停止）に遷移する。</summary>
         public void TriggerAngry() => _mover.SetState(ResidentState.Angry);
