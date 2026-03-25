@@ -1,3 +1,4 @@
+using System;
 using R3;
 using CleaningBot.Score;
 
@@ -15,6 +16,7 @@ namespace CleaningBot.Garbage
 
         public void Register(GarbageBase garbage)
         {
+            if (garbage == null) throw new ArgumentNullException(nameof(garbage));
             garbage.OnRemoved
                 .Subscribe(g => _model.OnGarbageRemoved.OnNext(g))
                 .AddTo(garbage); // ゴミが Destroy されたら自動 Dispose

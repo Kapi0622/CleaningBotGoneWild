@@ -15,8 +15,12 @@ namespace CleaningBot.Garbage
 
         public readonly Subject<GarbageBase> OnRemoved = new();
 
+        private bool _isRemoved;
+
         public void Remove()
         {
+            if (_isRemoved) return;
+            _isRemoved = true;
             OnRemoved.OnNext(this);
             OnRemoved.Dispose();
             Destroy(gameObject);

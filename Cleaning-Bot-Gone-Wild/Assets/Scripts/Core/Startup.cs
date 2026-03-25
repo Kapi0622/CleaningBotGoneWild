@@ -28,9 +28,14 @@ namespace CleaningBot.Core
 
             var garbageModel = new GarbageModel();
             var garbageRegistry = new GarbageRegistry(garbageModel);
+            var registeredCount = 0;
             foreach (var g in _garbages)
+            {
+                if (g == null) continue;
                 garbageRegistry.Register(g);
-            garbageModel.SetInitialCount(_garbages.Count);
+                registeredCount++;
+            }
+            garbageModel.SetInitialCount(registeredCount);
             var garbageTracker = new GarbageTracker(garbageModel);
             garbageTracker.Initialize();
         }

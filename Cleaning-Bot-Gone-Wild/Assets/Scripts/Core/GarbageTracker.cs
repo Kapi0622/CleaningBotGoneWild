@@ -1,3 +1,4 @@
+using System;
 using R3;
 using CleaningBot.Score;
 using UnityEngine;
@@ -13,12 +14,14 @@ namespace CleaningBot.Core
     public class GarbageTracker
     {
         private readonly GarbageModel _model;
+        private IDisposable _subscription;
 
         public GarbageTracker(GarbageModel model) => _model = model;
 
         public void Initialize()
         {
-            _model.OnGarbageRemoved
+            _subscription?.Dispose();
+            _subscription = _model.OnGarbageRemoved
                 .Subscribe(g =>
                 {
                     _model.RemainingCount.Value--;
