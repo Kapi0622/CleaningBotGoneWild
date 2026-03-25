@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using CleaningBot.Data;
 using CleaningBot.Environment;
+using CleaningBot.Garbage;
 using CleaningBot.Player;
+using CleaningBot.Score;
 using UnityEngine;
 
 namespace CleaningBot.Core
@@ -16,12 +18,26 @@ namespace CleaningBot.Core
         [SerializeField] private WeaponController _weaponController;
         [SerializeField] private FloorGrid _floorGrid;
         [SerializeField] private List<WeaponData> _weaponDataList;
+        [SerializeField] private List<GarbageBase> _garbages;
 
         private void Awake()
         {
             // Factory 生成・AudioSource 解決は WeaponController 内で完結。
             // Startup は AudioSource を知らない。
             _weaponController.Initialize(_playerLocomotion, _floorGrid, _weaponDataList);
+
+            var garbageModel = new GarbageModel();
+            var garbageRegistry = new GarbageRegistry(garbageModel);
+            var registeredCount = 0;
+            foreach (var g in _garbages)
+            {
+                if (g == null) continue;
+                garbageRegistry.Register(g);
+                registeredCount++;
+            }
+            garbageModel.SetInitialCount(registeredCount);
+            var garbageTracker = new GarbageTracker(garbageModel);
+            garbageTracker.Initialize();
         }
     }
 }
