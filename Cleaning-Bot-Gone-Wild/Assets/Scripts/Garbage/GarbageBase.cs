@@ -1,15 +1,24 @@
+using R3;
 using UnityEngine;
+using CleaningBot.Data;
 
 namespace CleaningBot.Garbage
 {
     /// <summary>
-    /// STEP 3: ゴミの最小実装。Remove() で即 Destroy する。
-    /// STEP 4 で R3 Subject・GarbageRegistry 連携に拡張する。
+    /// ゴミの基底クラス。
+    /// Remove() 呼び出し時に OnRemoved を発火してから自身を Destroy する。
+    /// GarbageRegistry が OnRemoved を購読して GarbageModel へ通知する。
     /// </summary>
-    public class GarbageBase : MonoBehaviour
+    public abstract class GarbageBase : MonoBehaviour
     {
+        [field: SerializeField] public GarbageData Data { get; private set; }
+
+        public readonly Subject<GarbageBase> OnRemoved = new();
+
         public void Remove()
         {
+            OnRemoved.OnNext(this);
+            OnRemoved.Dispose();
             Destroy(gameObject);
         }
     }
