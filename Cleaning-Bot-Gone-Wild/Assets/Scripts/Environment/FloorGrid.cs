@@ -38,12 +38,33 @@ namespace CleaningBot.Environment
 
         /// <summary>
         /// 武器が床にダメージを与える唯一の窓口。
-        /// 中身はSTEP5で実装する。STEP1〜4はこのメソッドが存在するだけでOK。
+        /// hitPosition と radius から XZ 平面での範囲内タイルを特定し、各タイルに damageAmount を与える。
         /// </summary>
         public void ApplyDamage(Vector3 hitPosition, float radius, int damageAmount)
         {
-            // TODO: STEP5で実装する
-            // hitPositionとradiusからグリッド座標を計算し、範囲内のFloorTileにダメージを分配する
+            int centerX = Mathf.RoundToInt((hitPosition.x - transform.position.x) / _cellSize);
+            int centerZ = Mathf.RoundToInt((hitPosition.z - transform.position.z) / _cellSize);
+            int radiusInCells = Mathf.CeilToInt(radius / _cellSize);
+            float radiusSqr = radius * radius;
+
+            for (int x = centerX - radiusInCells; x <= centerX + radiusInCells; x++)
+            {
+                for (int z = centerZ - radiusInCells; z <= centerZ + radiusInCells; z++)
+                {
+                    if (x < 0 || x >= _gridWidth || z < 0 || z >= _gridDepth) continue;
+
+                    // XZ平面での距離チェック（Y軸の高さ差を無視）。sqrt を避けるため二乗比較
+                    Vector3 tileWorldPos = GridToWorld(x, z);
+                    float dx = hitPosition.x - tileWorldPos.x;
+                    float dz = hitPosition.z - tileWorldPos.z;
+                    float distSqr = dx * dx + dz * dz;
+
+                    if (distSqr <= radiusSqr)
+                    {
+                        _tiles[x, z].TakeDamage(damageAmount);
+                    }
+                }
+            }
         }
 
         /// <summary>
