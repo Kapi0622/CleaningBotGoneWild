@@ -45,6 +45,7 @@ namespace CleaningBot.Environment
             int centerX = Mathf.RoundToInt((hitPosition.x - transform.position.x) / _cellSize);
             int centerZ = Mathf.RoundToInt((hitPosition.z - transform.position.z) / _cellSize);
             int radiusInCells = Mathf.CeilToInt(radius / _cellSize);
+            float radiusSqr = radius * radius;
 
             for (int x = centerX - radiusInCells; x <= centerX + radiusInCells; x++)
             {
@@ -52,13 +53,13 @@ namespace CleaningBot.Environment
                 {
                     if (x < 0 || x >= _gridWidth || z < 0 || z >= _gridDepth) continue;
 
-                    // XZ平面での距離チェック（Y軸の高さ差を無視）
+                    // XZ平面での距離チェック（Y軸の高さ差を無視）。sqrt を避けるため二乗比較
                     Vector3 tileWorldPos = GridToWorld(x, z);
                     float dx = hitPosition.x - tileWorldPos.x;
                     float dz = hitPosition.z - tileWorldPos.z;
-                    float distXZ = Mathf.Sqrt(dx * dx + dz * dz);
+                    float distSqr = dx * dx + dz * dz;
 
-                    if (distXZ <= radius)
+                    if (distSqr <= radiusSqr)
                     {
                         _tiles[x, z].TakeDamage(damageAmount);
                     }
