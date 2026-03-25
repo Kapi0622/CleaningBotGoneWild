@@ -3,6 +3,7 @@ using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Garbage;
 using CleaningBot.Player;
+using CleaningBot.Resident;
 using CleaningBot.Score;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ namespace CleaningBot.Core
         [SerializeField] private FloorGrid _floorGrid;
         [SerializeField] private List<WeaponData> _weaponDataList;
         [SerializeField] private List<GarbageBase> _garbages;
+        [SerializeField] private List<ResidentMover> _residentMovers;
 
         private void Awake()
         {
@@ -38,6 +40,16 @@ namespace CleaningBot.Core
             garbageModel.SetInitialCount(registeredCount);
             var garbageTracker = new GarbageTracker(garbageModel);
             garbageTracker.Initialize();
+
+            // STEP 6: 住人の依存注入
+            var scoreModel = new ScoreModel();
+            foreach (var mover in _residentMovers)
+            {
+                if (mover == null) continue;
+                mover.Initialize(_playerLocomotion.transform);
+                if (mover.TryGetComponent<ResidentReactor>(out var reactor))
+                    reactor.Initialize(scoreModel);
+            }
         }
     }
 }

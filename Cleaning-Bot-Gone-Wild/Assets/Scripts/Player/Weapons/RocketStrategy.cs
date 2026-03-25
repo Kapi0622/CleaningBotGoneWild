@@ -2,6 +2,7 @@ using System.Threading;
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Garbage;
+using CleaningBot.Resident;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -15,8 +16,9 @@ namespace CleaningBot.Player.Weapons
     public class RocketStrategy : IWeaponStrategy
     {
         private const float RayDistance = 20f;
-        private static readonly int GarbageLayer = LayerMask.GetMask("Garbage");
-        private static readonly int HitLayer = LayerMask.GetMask("Garbage", "Environment");
+        private static readonly int GarbageLayer  = LayerMask.GetMask("Garbage");
+        private static readonly int HitLayer      = LayerMask.GetMask("Garbage", "Environment");
+        private static readonly int ResidentLayer = LayerMask.GetMask("Resident");
 
         private readonly WeaponData _data;
         private readonly FloorGrid _floorGrid;
@@ -70,6 +72,16 @@ namespace CleaningBot.Player.Weapons
             }
 
             _floorGrid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);
+
+            // 爆発範囲内の住人を吹き飛ばす
+            var residentHits = Physics.OverlapSphere(hitPoint, explosionRadius, ResidentLayer);
+            foreach (var r in residentHits)
+            {
+                var outDir = (r.transform.position - hitPoint).normalized;
+                if (outDir == Vector3.zero) outDir = Vector3.up;
+                if (r.TryGetComponent<ResidentReactor>(out var reactor))
+                    reactor.OnHit(outDir, _data.residentHitForce);
+            }
 
             await UniTask.Delay(200, cancellationToken: ct);
         }
