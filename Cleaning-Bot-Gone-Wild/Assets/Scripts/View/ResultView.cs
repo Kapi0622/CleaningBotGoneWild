@@ -1,13 +1,60 @@
+using TMPro;
 using UnityEngine;
+using CleaningBot.Core;
 
 namespace CleaningBot.View
 {
     /// <summary>
-    /// STEP 9 で実装。
-    /// クリア・失敗パネルの表示切り替えと ResultData の内容描画を行う。
+    /// クリア・失敗パネルの表示切り替えと ResultData の内容描画を行う View。
+    /// ResultPresenter から ShowClear / ShowFail が呼ばれる。
     /// </summary>
     public class ResultView : MonoBehaviour
     {
-        // STEP 9: ShowClear(ResultData), ShowFail(ResultData), SetupButtons(StageResetter, GameStateController)
+        [Header("Panels")]
+        [SerializeField] private GameObject _clearPanel;
+        [SerializeField] private GameObject _failPanel;
+
+        [Header("Clear Panel Texts")]
+        [SerializeField] private TMP_Text _clearMainScoreText;
+        [SerializeField] private TMP_Text _clearRankText;
+        [SerializeField] private TMP_Text _clearElapsedTimeText;
+
+        [Header("Fail Panel Texts")]
+        [SerializeField] private TMP_Text _failMainScoreText;
+        [SerializeField] private TMP_Text _failRankText;
+
+        private void Awake()
+        {
+            _clearPanel.SetActive(false);
+            _failPanel.SetActive(false);
+        }
+
+        public void ShowClear(ResultData data)
+        {
+            _failPanel.SetActive(false);
+
+            _clearMainScoreText.text   = $"スコア: {data.MainScore}";
+            _clearRankText.text        = $"{new string('★', data.StarRank)}{new string('☆', 3 - data.StarRank)}";
+            _clearElapsedTimeText.text = $"タイム: {FormatTime(data.ElapsedTime)}";
+
+            _clearPanel.SetActive(true);
+        }
+
+        public void ShowFail(ResultData data)
+        {
+            _clearPanel.SetActive(false);
+
+            _failMainScoreText.text = $"スコア: {data.MainScore}";
+            _failRankText.text      = $"{new string('★', data.StarRank)}{new string('☆', 3 - data.StarRank)}";
+
+            _failPanel.SetActive(true);
+        }
+
+        private static string FormatTime(float seconds)
+        {
+            var m = (int)(seconds / 60);
+            var s = (int)(seconds % 60);
+            return $"{m:00}:{s:00}";
+        }
     }
 }

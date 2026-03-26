@@ -16,13 +16,11 @@ namespace CleaningBot.Core
         public void Initialize(TimerModel model)
         {
             _model = model;
-            _isRunning = true; // STEP 8: 即時開始（STEP 9 で InGameState から制御）
+            // タイマーは InGameState.OnEnter() の StartTimer() で開始する
         }
 
-        /// <summary>STEP 9 で InGameState から呼ぶ。</summary>
         public void StartTimer() => _isRunning = true;
 
-        /// <summary>STEP 9 で ClearState / FailState から呼ぶ。</summary>
         public void StopTimer() => _isRunning = false;
 
         private void Update()
