@@ -26,6 +26,8 @@ namespace CleaningBot.Player
             "SwitchVacuum", InputActionType.Button);
         [SerializeField] private InputAction _switchRocket = new InputAction(
             "SwitchRocket", InputActionType.Button);
+        [SerializeField] private InputAction _switchBlackHole = new InputAction(
+            "SwitchBlackHole", InputActionType.Button);
 
         private IWeaponStrategy _currentStrategy;
         private WeaponStrategyFactory _factory;
@@ -52,6 +54,11 @@ namespace CleaningBot.Player
                 _switchRocket.AddBinding("<Keyboard>/2");
                 _switchRocket.AddBinding("<Gamepad>/rightShoulder");
             }
+            if (_switchBlackHole.bindings.Count == 0)
+            {
+                _switchBlackHole.AddBinding("<Keyboard>/3");
+                _switchBlackHole.AddBinding("<Gamepad>/buttonEast");
+            }
         }
 
         private void OnEnable()
@@ -59,6 +66,7 @@ namespace CleaningBot.Player
             _useAction.Enable();
             _switchVacuum.Enable();
             _switchRocket.Enable();
+            _switchBlackHole.Enable();
         }
 
         private void OnDisable()
@@ -66,6 +74,7 @@ namespace CleaningBot.Player
             _useAction.Disable();
             _switchVacuum.Disable();
             _switchRocket.Disable();
+            _switchBlackHole.Disable();
             _cts.Cancel();
             _cts.Dispose();
             _cts = new CancellationTokenSource(); // 再有効化に備えて新しい CTS を用意
@@ -85,7 +94,9 @@ namespace CleaningBot.Player
                 _audioSource = GetComponent<AudioSource>();
 
             _locomotion = locomotion;
-            _factory = new WeaponStrategyFactory(weaponDataList, floorGrid, transform, _audioSource);
+            _factory = new WeaponStrategyFactory(
+                weaponDataList, floorGrid, transform, _audioSource,
+                () => _locomotion.FacingDirection);
             SwitchWeapon(WeaponType.Vacuum);
         }
 
@@ -97,12 +108,14 @@ namespace CleaningBot.Player
             _currentStrategy?.OnUnequip();
             _currentStrategy = _factory.Create(type);
             _currentStrategy.OnEquip();
+            Debug.Log($"[WeaponController] Switched to: {type}");
         }
 
         private void Update()
         {
-            if (_switchVacuum.WasPressedThisFrame()) SwitchWeapon(WeaponType.Vacuum);
-            if (_switchRocket.WasPressedThisFrame()) SwitchWeapon(WeaponType.Rocket);
+            if (_switchVacuum.WasPressedThisFrame())    SwitchWeapon(WeaponType.Vacuum);
+            if (_switchRocket.WasPressedThisFrame())    SwitchWeapon(WeaponType.Rocket);
+            if (_switchBlackHole.WasPressedThisFrame()) SwitchWeapon(WeaponType.BlackHole);
 
             if (_useAction.IsPressed() && _currentStrategy != null && _currentStrategy.CanExecute())
             {
@@ -117,6 +130,7 @@ namespace CleaningBot.Player
             _useAction.Dispose();
             _switchVacuum.Dispose();
             _switchRocket.Dispose();
+            _switchBlackHole.Dispose();
         }
     }
 }

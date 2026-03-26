@@ -154,6 +154,7 @@ MonoBehaviour:
   _weaponDataList:
   - {fileID: 11400000, guid: 6a1ae0fa5dfe7ca4b83485bee581e31d, type: 2}
   - {fileID: 11400000, guid: a061501c8ad7f8247affa7d3ebd1929b, type: 2}
+  - {fileID: 11400000, guid: 01ba427775da11d4e9896db3a2f1d21e, type: 2}
   _garbages:
   - {fileID: 2124789075}
   - {fileID: 306198118}
@@ -1248,6 +1249,15 @@ MonoBehaviour:
     m_Type: 1
     m_ExpectedControlType: 
     m_Id: fe0f08e8-1548-47b6-b738-b9e1a69d91e4
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  _switchBlackHole:
+    m_Name: SwitchBlackHole
+    m_Type: 1
+    m_ExpectedControlType: 
+    m_Id: 56313c33-73a0-4231-91b3-2056c4af82ab
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dba3e1a007f9a7147b99bf170d4358e2, type: 3}
+  m_Name: WeaponData_BlackHole
+  m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Data.WeaponData
+  weaponType: 2
+  cooldown: 9
+  floorDamage: 4
+  blastRadius: 5
+  fireSound: {fileID: 0}
+  residentHitForce: 12
+  throwRange: 10
