@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Garbage;
@@ -23,6 +22,7 @@ namespace CleaningBot.Core
         [SerializeField] private WeaponController _weaponController;
         [SerializeField] private FloorGrid _floorGrid;
         [SerializeField] private GameTimer _gameTimer;
+        [SerializeField] private GameSceneController _gameSceneController;
 
         [Header("Stage")]
         [SerializeField] private StageData _stageData;
@@ -35,6 +35,7 @@ namespace CleaningBot.Core
         [SerializeField] private TimerView _timerView;
         [SerializeField] private WeaponView _weaponView;
         [SerializeField] private GarbageView _garbageView;
+        [SerializeField] private ResultView _resultView;
 
         private void Awake()
         {
@@ -50,10 +51,12 @@ namespace CleaningBot.Core
             new WeaponPresenter().Initialize(weaponModel, _weaponView);
             new GarbagePresenter().Initialize(garbageModel, _garbageView);
 
-            // 3. GameTimer に TimerModel を注入
+            // 3. GameTimer に TimerModel を注入し、GameStateController を生成
             _gameTimer.Initialize(timerModel);
+            var gameStateController = new GameStateController(_gameTimer, timerModel, _playerLocomotion.transform);
+            _gameSceneController.SetController(gameStateController);
 
-            // 4. GarbageRegistry → GarbageTracker（ScoreModel 注入）
+            // 4. GarbageRegistry → GarbageTracker（ScoreModel・GameStateController 注入）
             var garbageRegistry = new GarbageRegistry(garbageModel);
             var registeredCount = 0;
             foreach (var g in _garbages)
@@ -63,7 +66,7 @@ namespace CleaningBot.Core
                 registeredCount++;
             }
             garbageModel.SetInitialCount(registeredCount);
-            new GarbageTracker(garbageModel, scoreModel).Initialize();
+            new GarbageTracker(garbageModel, scoreModel, gameStateController).Initialize();
 
             // 5. WeaponController（WeaponModel 注入）
             _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, _weaponDataList);
@@ -76,6 +79,14 @@ namespace CleaningBot.Core
                 if (mover.TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.Initialize(scoreModel);
             }
+
+            // 7. ResultPresenter（必ず ChangeState より前に初期化する）
+            new ResultPresenter().Initialize(
+                gameStateController, scoreModel, garbageModel,
+                timerModel, new RankCalculator(), _stageData, _resultView);
+
+            // 8. ゲーム開始（最終行）
+            gameStateController.ChangeState(new InGameState());
         }
     }
 }

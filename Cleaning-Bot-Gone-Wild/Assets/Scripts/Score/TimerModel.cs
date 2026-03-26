@@ -12,6 +12,7 @@ namespace CleaningBot.Score
     {
         public readonly ReactiveProperty<float> RemainingTime;
         public bool IsTimeUp => RemainingTime.Value <= 0f;
+        public float ElapsedTime => _initialTime - RemainingTime.Value;
 
         private readonly float _initialTime;
 

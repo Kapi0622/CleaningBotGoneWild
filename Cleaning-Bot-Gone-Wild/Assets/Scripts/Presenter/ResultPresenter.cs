@@ -1,14 +1,41 @@
+using R3;
+using CleaningBot.Core;
+using CleaningBot.Data;
+using CleaningBot.Score;
+using CleaningBot.View;
+
 namespace CleaningBot.Presenter
 {
     /// <summary>
-    /// STEP 9 で実装。
     /// GameStateController の OnStateChanged を購読し、
-    /// ResultData を組み立てて ResultView に渡す。
+    /// 各 Model から ResultData を組み立てて ResultView に渡す。
+    /// PresenterにはSubscribeとAddToしか書かない。
     /// </summary>
     public class ResultPresenter
     {
-        // STEP 9: Initialize(GameStateController, ScoreModel, GarbageModel,
-        //                     TimerModel, RankCalculator, StageData, ResultView)
-        public void Initialize() { }
+        public void Initialize(
+            GameStateController stateCtrl,
+            ScoreModel scoreModel,
+            GarbageModel garbageModel,
+            TimerModel timerModel,
+            RankCalculator rankCalc,
+            StageData stageData,
+            ResultView view)
+        {
+            stateCtrl.OnStateChanged
+                .Subscribe(state =>
+                {
+                    var data = new ResultData(
+                        scoreModel.MainScore.Value,
+                        scoreModel.SubScore.Value,
+                        garbageModel.RemainingCount.Value,
+                        timerModel.ElapsedTime,
+                        rankCalc.Calculate(scoreModel.MainScore.Value, stageData));
+
+                    if (state is ClearState) view.ShowClear(data);
+                    else if (state is FailState) view.ShowFail(data);
+                })
+                .AddTo(view);
+        }
     }
 }

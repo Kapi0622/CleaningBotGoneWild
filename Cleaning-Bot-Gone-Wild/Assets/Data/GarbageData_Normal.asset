@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: GarbageData_Normal
   m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Data.GarbageData
   garbageType: 0
-  scoreValue: 100
+  scoreValue: 200
   hasPhysicalCollision: 1

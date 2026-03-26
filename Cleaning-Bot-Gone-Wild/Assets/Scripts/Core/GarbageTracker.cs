@@ -7,18 +7,20 @@ namespace CleaningBot.Core
 {
     /// <summary>
     /// 残りゴミ数の追跡・スコア加算・クリア判定。
-    /// STEP 9: コンストラクタに GameStateController を追加して ClearState 遷移を有効化。
+    /// 全ゴミ除去時に GameStateController.ChangeState(new ClearState()) を呼ぶ。
     /// </summary>
     public class GarbageTracker
     {
         private readonly GarbageModel _model;
         private readonly ScoreModel _scoreModel;
+        private readonly GameStateController _stateController;
         private IDisposable _subscription;
 
-        public GarbageTracker(GarbageModel model, ScoreModel scoreModel)
+        public GarbageTracker(GarbageModel model, ScoreModel scoreModel, GameStateController stateController)
         {
             _model = model;
             _scoreModel = scoreModel;
+            _stateController = stateController;
         }
 
         public void Initialize()
@@ -31,9 +33,9 @@ namespace CleaningBot.Core
                     _scoreModel.AddMainScore(g.Data?.scoreValue ?? 0);
                     Debug.Log($"[GarbageTracker] Remaining: {_model.RemainingCount.Value}");
                     if (_model.RemainingCount.Value > 0) return;
+                    if (!(_stateController.CurrentState is InGameState)) return;
 
-                    // STEP 9: _stateCtrl.ChangeState(new ClearState());
-                    Debug.Log("[GarbageTracker] All cleared! (STEP 9 で ClearState へ遷移)");
+                    _stateController.ChangeState(new ClearState());
                 });
         }
     }
