@@ -29,9 +29,10 @@ namespace CleaningBot.View
         [SerializeField] private ClickEvent _clearRetryButton;
         [SerializeField] private ClickEvent _failRetryButton;
 
-        public Observable<Unit> OnRetryClicked { get; private set; }
+        private Observable<Unit> _onRetryClicked;
+        public Observable<Unit> OnRetryClicked => _onRetryClicked ??= BuildOnRetryClicked();
 
-        private void Awake()
+        private Observable<Unit> BuildOnRetryClicked()
         {
             if (_clearRetryButton == null)
                 throw new System.InvalidOperationException(
@@ -39,9 +40,11 @@ namespace CleaningBot.View
             if (_failRetryButton == null)
                 throw new System.InvalidOperationException(
                     $"[ResultView] _failRetryButton が未アサインです。{gameObject.name} の Inspector を確認してください。");
+            return Observable.Merge(_clearRetryButton.OnClicked, _failRetryButton.OnClicked);
+        }
 
-            OnRetryClicked = Observable.Merge(_clearRetryButton.OnClicked, _failRetryButton.OnClicked);
-
+        private void Awake()
+        {
             _clearPanel.SetActive(false);
             _failPanel.SetActive(false);
         }
