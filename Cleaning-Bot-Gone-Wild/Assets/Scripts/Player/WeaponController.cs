@@ -3,6 +3,7 @@ using System.Threading;
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player.Weapons;
+using CleaningBot.Score;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -32,6 +33,7 @@ namespace CleaningBot.Player
         private IWeaponStrategy _currentStrategy;
         private WeaponStrategyFactory _factory;
         private PlayerLocomotion _locomotion;
+        private WeaponModel _weaponModel;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
         private void Awake()
@@ -85,6 +87,7 @@ namespace CleaningBot.Player
         /// Startup が AudioSource を知る必要をなくす。
         /// </summary>
         public void Initialize(
+            WeaponModel weaponModel,
             PlayerLocomotion locomotion,
             FloorGrid floorGrid,
             IReadOnlyList<WeaponData> weaponDataList)
@@ -93,6 +96,7 @@ namespace CleaningBot.Player
             if (_audioSource == null)
                 _audioSource = GetComponent<AudioSource>();
 
+            _weaponModel = weaponModel;
             _locomotion = locomotion;
             _factory = new WeaponStrategyFactory(
                 weaponDataList, floorGrid, transform, _audioSource,
@@ -108,6 +112,7 @@ namespace CleaningBot.Player
             _currentStrategy?.OnUnequip();
             _currentStrategy = _factory.Create(type);
             _currentStrategy.OnEquip();
+            if (_weaponModel != null) _weaponModel.CurrentWeapon.Value = type;
             Debug.Log($"[WeaponController] Switched to: {type}");
         }
 

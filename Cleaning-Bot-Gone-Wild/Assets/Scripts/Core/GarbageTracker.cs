@@ -6,17 +6,20 @@ using UnityEngine;
 namespace CleaningBot.Core
 {
     /// <summary>
-    /// 残りゴミ数の追跡とクリア判定。
-    /// STEP 4: クリア時は Debug.Log のみ。
-    /// STEP 8: SetDependencies() に ScoreModel を追加して AddMainScore を有効化。
-    /// STEP 9: SetDependencies() に GameStateController を追加して ClearState 遷移を有効化。
+    /// 残りゴミ数の追跡・スコア加算・クリア判定。
+    /// STEP 9: コンストラクタに GameStateController を追加して ClearState 遷移を有効化。
     /// </summary>
     public class GarbageTracker
     {
         private readonly GarbageModel _model;
+        private readonly ScoreModel _scoreModel;
         private IDisposable _subscription;
 
-        public GarbageTracker(GarbageModel model) => _model = model;
+        public GarbageTracker(GarbageModel model, ScoreModel scoreModel)
+        {
+            _model = model;
+            _scoreModel = scoreModel;
+        }
 
         public void Initialize()
         {
@@ -25,7 +28,7 @@ namespace CleaningBot.Core
                 .Subscribe(g =>
                 {
                     _model.RemainingCount.Value--;
-                    // STEP 8: _scoreModel?.AddMainScore(g.Data?.scoreValue ?? 0);
+                    _scoreModel.AddMainScore(g.Data?.scoreValue ?? 0);
                     Debug.Log($"[GarbageTracker] Remaining: {_model.RemainingCount.Value}");
                     if (_model.RemainingCount.Value > 0) return;
 
