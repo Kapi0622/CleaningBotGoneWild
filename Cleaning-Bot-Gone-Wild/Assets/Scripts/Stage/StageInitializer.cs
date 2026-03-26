@@ -5,7 +5,7 @@ using CleaningBot.Resident;
 using CleaningBot.Score;
 using UnityEngine;
 
-namespace CleaningBot.Core
+namespace CleaningBot.Stage
 {
     /// <summary>
     /// ゴミと住人の生成・破棄・再生成ライフサイクルを管理する MonoBehaviour。
@@ -14,7 +14,7 @@ namespace CleaningBot.Core
     /// </summary>
     public class StageInitializer : MonoBehaviour
     {
-        private StageData  _stageData;
+        private StageData    _stageData;
         private GarbageModel _garbageModel;
         private ScoreModel   _scoreModel;
         private Transform    _playerTransform;
@@ -47,19 +47,30 @@ namespace CleaningBot.Core
                 if (spawn.prefab == null) continue;
                 var go      = Instantiate(spawn.prefab, spawn.spawnPosition, Quaternion.identity, transform);
                 var garbage = go.GetComponent<GarbageBase>();
-                if (garbage == null) continue;
+                if (garbage == null)
+                {
+                    Debug.LogWarning($"[StageInitializer] prefab '{spawn.prefab.name}' に GarbageBase がありません。破棄します。", spawn.prefab);
+                    Destroy(go);
+                    continue;
+                }
                 registry.Register(garbage);
                 _activeGarbages.Add(garbage);
             }
             _garbageModel.SetInitialCount(_activeGarbages.Count);
 
-            for (var i = 0; i < _stageData.residentSpawnPoints.Count; i++)
+            var spawnCount = Mathf.Min(_stageData.residentCount, _stageData.residentSpawnPoints.Count);
+            for (var i = 0; i < spawnCount; i++)
             {
                 if (_stageData.residentPrefab == null) continue;
                 var go    = Instantiate(_stageData.residentPrefab, _stageData.residentSpawnPoints[i],
                                         Quaternion.identity, transform);
                 var mover = go.GetComponent<ResidentMover>();
-                if (mover == null) continue;
+                if (mover == null)
+                {
+                    Debug.LogWarning($"[StageInitializer] prefab '{_stageData.residentPrefab.name}' に ResidentMover がありません。破棄します。", _stageData.residentPrefab);
+                    Destroy(go);
+                    continue;
+                }
                 mover.Initialize(_playerTransform);
                 if (go.TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.Initialize(_scoreModel);
@@ -70,11 +81,19 @@ namespace CleaningBot.Core
         private void DestroyAll()
         {
             foreach (var g in _activeGarbages)
-                if (g != null) Destroy(g.gameObject);
+            {
+                if (g == null) continue;
+                g.gameObject.SetActive(false); // 同フレーム内の一時共存（コライダー等）を防ぐ
+                Destroy(g.gameObject);
+            }
             _activeGarbages.Clear();
 
             foreach (var r in _activeResidents)
-                if (r != null) Destroy(r.gameObject);
+            {
+                if (r == null) continue;
+                r.gameObject.SetActive(false);
+                Destroy(r.gameObject);
+            }
             _activeResidents.Clear();
         }
     }

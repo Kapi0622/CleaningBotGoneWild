@@ -1,6 +1,7 @@
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Score;
+using CleaningBot.Stage;
 using UnityEngine;
 
 namespace CleaningBot.Core

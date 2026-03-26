@@ -155,7 +155,7 @@ MonoBehaviour:
   _gameTimer: {fileID: 1524048271}
   _gameSceneController: {fileID: 18141205}
   _stageData: {fileID: 11400000, guid: ae0b2131317c2354d9ddf08cf908481d, type: 2}
-  _stageInitializer: {fileID: 827238709}
+  _stageInitializer: {fileID: 827238711}
   _scoreView: {fileID: 96176805}
   _timerView: {fileID: 1668782228}
   _weaponView: {fileID: 72007759}
@@ -1417,6 +1417,7 @@ GameObject:
   m_Component:
   - component: {fileID: 827238710}
   - component: {fileID: 827238709}
+  - component: {fileID: 827238711}
   m_Layer: 0
   m_Name: StageInitializer
   m_TagString: Untagged
@@ -1436,6 +1437,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d379778f90ab4c46ba5324952734403, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Core.StageInitializer
+  _stageData: {fileID: 0}
+  _playerTransform: {fileID: 0}
 --- !u!4 &827238710
 Transform:
   m_ObjectHideFlags: 0
@@ -1451,6 +1454,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &827238711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827238708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2870fbdb3bdc40c419626cdfb31190a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Stage.StageInitializer
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,6 +3,7 @@ using CleaningBot.Environment;
 using CleaningBot.Player;
 using CleaningBot.Presenter;
 using CleaningBot.Score;
+using CleaningBot.Stage;
 using CleaningBot.View;
 using R3;
 using UnityEngine;
@@ -35,9 +36,13 @@ namespace CleaningBot.Core
 
         private void Awake()
         {
+            // StageLoader 経由で StageData を取得
+            var stageLoader = new StageLoader(_stageData);
+            var stageData   = stageLoader.Load();
+
             // 1. Model 生成
             var scoreModel   = new ScoreModel();
-            var timerModel   = new TimerModel(_stageData.timeLimit);
+            var timerModel   = new TimerModel(stageData.timeLimit);
             var weaponModel  = new WeaponModel();
             var garbageModel = new GarbageModel();
 
@@ -53,23 +58,23 @@ namespace CleaningBot.Core
             _gameSceneController.SetController(gameStateController);
 
             // 4. StageInitializer でゴミ・住人を生成し、GarbageTracker を初期化
-            _stageInitializer.Initialize(_stageData, garbageModel, scoreModel, _playerLocomotion.transform);
+            _stageInitializer.Initialize(stageData, garbageModel, scoreModel, _playerLocomotion.transform);
             var garbageTracker = new GarbageTracker(garbageModel, scoreModel, gameStateController);
             garbageTracker.Initialize();
 
             // 5. WeaponController（WeaponModel 注入）
-            _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, _stageData.weaponDataList);
+            _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, stageData.weaponDataList);
 
             // 6. ResultPresenter（必ず ChangeState より前に初期化する）
             new ResultPresenter().Initialize(
                 gameStateController, scoreModel, garbageModel,
-                timerModel, new RankCalculator(), _stageData, _resultView);
+                timerModel, new RankCalculator(), stageData, _resultView);
 
             // 7. StageResetter を生成し、リトライボタンと接続
             var stageResetter = new StageResetter(
                 scoreModel, timerModel, weaponModel, garbageModel,
                 _floorGrid, _stageInitializer, garbageTracker,
-                _playerLocomotion.transform, _stageData, gameStateController);
+                _playerLocomotion.transform, stageData, gameStateController);
             _resultView.OnRetryClicked
                 .Subscribe(_ => stageResetter.Reset())
                 .AddTo(_resultView);
