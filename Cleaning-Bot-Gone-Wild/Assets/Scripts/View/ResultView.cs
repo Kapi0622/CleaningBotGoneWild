@@ -1,3 +1,4 @@
+using R3;
 using TMPro;
 using UnityEngine;
 using CleaningBot.Core;
@@ -6,7 +7,8 @@ namespace CleaningBot.View
 {
     /// <summary>
     /// クリア・失敗パネルの表示切り替えと ResultData の内容描画を行う View。
-    /// ResultPresenter から ShowClear / ShowFail が呼ばれる。
+    /// ResultPresenter から ShowClear / ShowFail / Hide が呼ばれる。
+    /// リトライボタンは ClickEvent コンポーネント経由で OnRetryClicked として公開する。
     /// </summary>
     public class ResultView : MonoBehaviour
     {
@@ -22,6 +24,13 @@ namespace CleaningBot.View
         [Header("Fail Panel Texts")]
         [SerializeField] private TMP_Text _failMainScoreText;
         [SerializeField] private TMP_Text _failRankText;
+
+        [Header("Retry Buttons")]
+        [SerializeField] private ClickEvent _clearRetryButton;
+        [SerializeField] private ClickEvent _failRetryButton;
+
+        public Observable<Unit> OnRetryClicked =>
+            Observable.Merge(_clearRetryButton.OnClicked, _failRetryButton.OnClicked);
 
         private void Awake()
         {
@@ -48,6 +57,12 @@ namespace CleaningBot.View
             _failRankText.text      = $"{new string('★', data.StarRank)}{new string('☆', 3 - data.StarRank)}";
 
             _failPanel.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            _clearPanel.SetActive(false);
+            _failPanel.SetActive(false);
         }
 
         private static string FormatTime(float seconds)

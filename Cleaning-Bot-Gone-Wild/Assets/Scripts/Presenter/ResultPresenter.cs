@@ -25,6 +25,8 @@ namespace CleaningBot.Presenter
             stateCtrl.OnStateChanged
                 .Subscribe(state =>
                 {
+                    if (state is InGameState) { view.Hide(); return; }
+
                     var data = new ResultData(
                         scoreModel.MainScore.Value,
                         scoreModel.SubScore.Value,
