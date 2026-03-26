@@ -1,12 +1,10 @@
-using System.Collections.Generic;
 using CleaningBot.Data;
 using CleaningBot.Environment;
-using CleaningBot.Garbage;
 using CleaningBot.Player;
 using CleaningBot.Presenter;
-using CleaningBot.Resident;
 using CleaningBot.Score;
 using CleaningBot.View;
+using R3;
 using UnityEngine;
 
 namespace CleaningBot.Core
@@ -26,9 +24,7 @@ namespace CleaningBot.Core
 
         [Header("Stage")]
         [SerializeField] private StageData _stageData;
-        [SerializeField] private List<WeaponData> _weaponDataList;
-        [SerializeField] private List<GarbageBase> _garbages;
-        [SerializeField] private List<ResidentMover> _residentMovers;
+        [SerializeField] private StageInitializer _stageInitializer;
 
         [Header("Views")]
         [SerializeField] private ScoreView _scoreView;
@@ -56,34 +52,27 @@ namespace CleaningBot.Core
             var gameStateController = new GameStateController(_gameTimer, timerModel, _playerLocomotion.transform);
             _gameSceneController.SetController(gameStateController);
 
-            // 4. GarbageRegistry → GarbageTracker（ScoreModel・GameStateController 注入）
-            var garbageRegistry = new GarbageRegistry(garbageModel);
-            var registeredCount = 0;
-            foreach (var g in _garbages)
-            {
-                if (g == null) continue;
-                garbageRegistry.Register(g);
-                registeredCount++;
-            }
-            garbageModel.SetInitialCount(registeredCount);
-            new GarbageTracker(garbageModel, scoreModel, gameStateController).Initialize();
+            // 4. StageInitializer でゴミ・住人を生成し、GarbageTracker を初期化
+            _stageInitializer.Initialize(_stageData, garbageModel, scoreModel, _playerLocomotion.transform);
+            var garbageTracker = new GarbageTracker(garbageModel, scoreModel, gameStateController);
+            garbageTracker.Initialize();
 
             // 5. WeaponController（WeaponModel 注入）
-            _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, _weaponDataList);
+            _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, _stageData.weaponDataList);
 
-            // 6. 住人（ScoreModel 注入）
-            foreach (var mover in _residentMovers)
-            {
-                if (mover == null) continue;
-                mover.Initialize(_playerLocomotion.transform);
-                if (mover.TryGetComponent<ResidentReactor>(out var reactor))
-                    reactor.Initialize(scoreModel);
-            }
-
-            // 7. ResultPresenter（必ず ChangeState より前に初期化する）
+            // 6. ResultPresenter（必ず ChangeState より前に初期化する）
             new ResultPresenter().Initialize(
                 gameStateController, scoreModel, garbageModel,
                 timerModel, new RankCalculator(), _stageData, _resultView);
+
+            // 7. StageResetter を生成し、リトライボタンと接続
+            var stageResetter = new StageResetter(
+                scoreModel, timerModel, weaponModel, garbageModel,
+                _floorGrid, _stageInitializer, garbageTracker,
+                _playerLocomotion.transform, _stageData, gameStateController);
+            _resultView.OnRetryClicked
+                .Subscribe(_ => stageResetter.Reset())
+                .AddTo(_resultView);
 
             // 8. ゲーム開始（最終行）
             gameStateController.ChangeState(new InGameState());

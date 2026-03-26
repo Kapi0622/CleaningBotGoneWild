@@ -15,6 +15,9 @@ namespace CleaningBot.Data
         public string stageName;
         public float timeLimit = 180f;
 
+        [Header("プレイヤー設定")]
+        public Vector3 playerStartPosition;
+
         [Header("武器設定")]
         public List<WeaponType> availableWeapons;
         public List<WeaponData> weaponDataList;
@@ -23,6 +26,7 @@ namespace CleaningBot.Data
         public List<GarbageSpawnData> garbageSpawns;
 
         [Header("住人設定")]
+        public GameObject residentPrefab;
         public int residentCount;
         public List<Vector3> residentSpawnPoints;
 
@@ -34,6 +38,7 @@ namespace CleaningBot.Data
     [Serializable]
     public class GarbageSpawnData
     {
+        public GameObject prefab;
         public GarbageData garbageData;
         public Vector3 spawnPosition;
     }
