@@ -1,7 +1,7 @@
 namespace CleaningBot.Core
 {
     /// <summary>
-    /// タイムアップによる失敗状態。
+    /// タイムアップ／落下による失敗状態。
     /// OnEnter でタイマーを停止し、以降は何もしない。
     /// </summary>
     public class FailState : IGameState

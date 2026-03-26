@@ -17,6 +17,8 @@ namespace CleaningBot.Core
         public readonly Transform PlayerTransform;
         public readonly Subject<IGameState> OnStateChanged = new();
 
+        public IGameState CurrentState => _current;
+
         private IGameState _current;
 
         public GameStateController(GameTimer gameTimer, TimerModel timerModel, Transform playerTransform)

@@ -33,6 +33,7 @@ namespace CleaningBot.Core
                     _scoreModel.AddMainScore(g.Data?.scoreValue ?? 0);
                     Debug.Log($"[GarbageTracker] Remaining: {_model.RemainingCount.Value}");
                     if (_model.RemainingCount.Value > 0) return;
+                    if (!(_stateController.CurrentState is InGameState)) return;
 
                     _stateController.ChangeState(new ClearState());
                 });
