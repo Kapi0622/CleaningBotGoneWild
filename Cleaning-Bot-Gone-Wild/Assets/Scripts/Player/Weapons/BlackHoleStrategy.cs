@@ -49,7 +49,7 @@ namespace CleaningBot.Player.Weapons
             _floorGrid          = floorGrid;
             _origin             = origin;
             _audioSource        = audioSource;
-            _getFacingDirection = getFacingDirection;
+            _getFacingDirection = getFacingDirection ?? throw new ArgumentNullException(nameof(getFacingDirection));
         }
 
         public void OnEquip()
@@ -60,11 +60,10 @@ namespace CleaningBot.Player.Weapons
             UnityEngine.Object.Destroy(_indicator.GetComponent<CapsuleCollider>());
 
             var rend = _indicator.GetComponent<Renderer>();
-            var mat  = rend.material;
-            if (mat.HasProperty("_BaseColor"))
-                mat.SetColor("_BaseColor", new Color(1f, 0.4f, 0f));
-            else
-                mat.color = new Color(1f, 0.4f, 0f);
+            var mpb  = new MaterialPropertyBlock();
+            rend.GetPropertyBlock(mpb);
+            mpb.SetColor("_BaseColor", new Color(1f, 0.4f, 0f));
+            rend.SetPropertyBlock(mpb);
 
             var comp = _indicator.AddComponent<BlackHoleLandingIndicator>();
             comp.Initialize(ComputeCurrentLandingPoint);
@@ -117,12 +116,13 @@ namespace CleaningBot.Player.Weapons
             lr.SetPositions(arcPoints);
             lr.startWidth = 0.1f;
             lr.endWidth   = 0.05f;
-            var urpUnlit = Shader.Find("Universal Render Pipeline/Unlit");
+            Material lrMat   = null;
+            var      urpUnlit = Shader.Find("Universal Render Pipeline/Unlit");
             if (urpUnlit != null)
             {
-                var mat = new Material(urpUnlit);
-                mat.SetColor("_BaseColor", Color.cyan);
-                lr.material = mat;
+                lrMat = new Material(urpUnlit);
+                lrMat.SetColor("_BaseColor", Color.cyan);
+                lr.material = lrMat;
             }
 
             // ---- 投擲物 Sphere ----
@@ -131,7 +131,10 @@ namespace CleaningBot.Player.Weapons
             projectile.transform.position   = startPos;
             UnityEngine.Object.Destroy(projectile.GetComponent<SphereCollider>());
             var projRenderer = projectile.GetComponent<Renderer>();
-            projRenderer.material.color = Color.black;
+            var projMpb      = new MaterialPropertyBlock();
+            projRenderer.GetPropertyBlock(projMpb);
+            projMpb.SetColor("_BaseColor", Color.black);
+            projRenderer.SetPropertyBlock(projMpb);
 
             try
             {
@@ -150,10 +153,12 @@ namespace CleaningBot.Player.Weapons
                 projectile.transform.position   = landingPoint;
                 projectile.transform.localScale = Vector3.one * 1.5f;
 
-                int   tickCount     = Mathf.RoundToInt(SuctionDuration / DamageTickInterval);
-                int   perTickDamage = Mathf.Max(1, Mathf.RoundToInt(_data.floorDamage / tickCount));
-                float floorRadius   = _data.blastRadius * FloorRadiusFactor;
-                float removeRadius  = _data.blastRadius * GarbageRemoveRadiusFactor;
+                int   tickCount   = Mathf.Max(1, Mathf.CeilToInt(SuctionDuration / DamageTickInterval));
+                int   totalDamage = Mathf.RoundToInt(_data.floorDamage);
+                int   baseD       = totalDamage / tickCount;
+                int   rem         = totalDamage % tickCount;
+                float floorRadius  = _data.blastRadius * FloorRadiusFactor;
+                float removeRadius = _data.blastRadius * GarbageRemoveRadiusFactor;
 
                 for (int i = 0; i < tickCount; i++)
                 {
@@ -161,7 +166,8 @@ namespace CleaningBot.Player.Weapons
                         (int)(DamageTickInterval * 1000),
                         cancellationToken: ct);
 
-                    _floorGrid.ApplyDamage(landingPoint, floorRadius, perTickDamage);
+                    int thisTick = baseD + (i < rem ? 1 : 0);
+                    _floorGrid.ApplyDamage(landingPoint, floorRadius, thisTick);
                     AttractAndRemoveGarbage(landingPoint, removeRadius);
                 }
 
@@ -170,8 +176,9 @@ namespace CleaningBot.Player.Weapons
             }
             finally
             {
-                if (lineObj)    UnityEngine.Object.Destroy(lineObj);
-                if (projectile) UnityEngine.Object.Destroy(projectile);
+                if (lrMat != null) UnityEngine.Object.Destroy(lrMat);
+                if (lineObj)       UnityEngine.Object.Destroy(lineObj);
+                if (projectile)    UnityEngine.Object.Destroy(projectile);
             }
         }
 
