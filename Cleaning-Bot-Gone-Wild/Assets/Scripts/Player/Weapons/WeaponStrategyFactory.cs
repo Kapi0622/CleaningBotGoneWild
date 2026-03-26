@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CleaningBot.Data;
@@ -18,7 +19,8 @@ namespace CleaningBot.Player.Weapons
             IReadOnlyList<WeaponData> dataList,
             FloorGrid floorGrid,
             Transform origin,
-            AudioSource audioSource)
+            AudioSource audioSource,
+            Func<Vector3> getFacingDirection)
         {
             _strategies = new Dictionary<WeaponType, IWeaponStrategy>
             {
@@ -29,6 +31,11 @@ namespace CleaningBot.Player.Weapons
                 {
                     WeaponType.Rocket,
                     new RocketStrategy(GetData(dataList, WeaponType.Rocket), floorGrid, origin, audioSource)
+                },
+                {
+                    WeaponType.BlackHole,
+                    new BlackHoleStrategy(
+                        GetData(dataList, WeaponType.BlackHole), floorGrid, origin, audioSource, getFacingDirection)
                 },
             };
         }
