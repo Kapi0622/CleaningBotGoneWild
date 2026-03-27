@@ -56,40 +56,59 @@ namespace CleaningBot.Player.Weapons
 
         public bool CanExecute() => true;
 
+        /// <summary>
+        /// NonAlloc でオーバーラップを取得する。バッファが埋まった場合（超過の可能性あり）は
+        /// Alloc 版にフォールバックして取りこぼしを防ぐ。
+        /// 通常ケースはゼロアロック。
+        /// </summary>
+        private static Collider[] OverlapSphereWithFallback(
+            Vector3 pos, float radius, Collider[] buffer, int layerMask, out int count)
+        {
+            count = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
+            if (count < buffer.Length) return buffer;
+            // バッファが埋まった → 超過分が切り捨てられている可能性があるため Alloc 版で再取得
+            var allHits = Physics.OverlapSphere(pos, radius, layerMask);
+            count = allHits.Length;
+            return allHits;
+        }
+
         public void Execute(Vector3 direction, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
 
             // 吸引コーンエフェクト（ループ）: 未生成なら起動、生成済みなら位置・向きを追従
+            var effectRotation = direction != Vector3.zero
+                ? Quaternion.LookRotation(direction)
+                : _origin.rotation;
+
             if (_activeEffect == null)
             {
-                _activeEffect = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, _origin.position);
+                _activeEffect = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, _origin.position, effectRotation);
             }
             else
             {
-                _activeEffect.transform.position = _origin.position;
-                _activeEffect.transform.rotation = Quaternion.LookRotation(direction);
+                _activeEffect.transform.SetPositionAndRotation(_origin.position, effectRotation);
             }
 
-            int garbageCount = Physics.OverlapSphereNonAlloc(_origin.position, Range, _garbageBuffer, GarbageLayer);
+            var garbageHits = OverlapSphereWithFallback(_origin.position, Range, _garbageBuffer, GarbageLayer, out int garbageCount);
             for (int i = 0; i < garbageCount; i++)
             {
-                var toTarget = (_garbageBuffer[i].transform.position - _origin.position).normalized;
+                var toTarget = (garbageHits[i].transform.position - _origin.position).normalized;
                 if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
 
-                if (_garbageBuffer[i].TryGetComponent<GarbageBase>(out var garbage))
+                if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
                 {
                     garbage.Remove();
                 }
             }
 
             // 同じ前方コーン内にいる住人に怒り状態をトリガーする
-            int residentCount = Physics.OverlapSphereNonAlloc(_origin.position, Range, _residentBuffer, ResidentLayer);
+            var residentHits = OverlapSphereWithFallback(_origin.position, Range, _residentBuffer, ResidentLayer, out int residentCount);
             for (int i = 0; i < residentCount; i++)
             {
-                var toTarget = (_residentBuffer[i].transform.position - _origin.position).normalized;
+                var toTarget = (residentHits[i].transform.position - _origin.position).normalized;
                 if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
-                if (_residentBuffer[i].TryGetComponent<ResidentReactor>(out var reactor))
+                if (residentHits[i].TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.TriggerAngry();
             }
 

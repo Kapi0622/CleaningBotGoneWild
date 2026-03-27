@@ -67,12 +67,12 @@ namespace CleaningBot.Player.Weapons
 
             ParticlePlayer.PlayAt(_data.impactEffectPrefab, hitPoint);
 
-            // 着弾点の爆発範囲内にあるゴミを NonAlloc で一括検出・除去
+            // 着弾点の爆発範囲内にあるゴミを一括検出・除去
             var explosionRadius = Mathf.Max(_data.blastRadius, 0.5f);
-            int garbageCount = Physics.OverlapSphereNonAlloc(hitPoint, explosionRadius, _garbageBuffer, GarbageLayer);
+            var garbageHits = OverlapSphereWithFallback(hitPoint, explosionRadius, _garbageBuffer, GarbageLayer, out int garbageCount);
             for (int i = 0; i < garbageCount; i++)
             {
-                if (_garbageBuffer[i].TryGetComponent<GarbageBase>(out var garbage))
+                if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
                 {
                     garbage.Remove();
                 }
@@ -81,16 +81,26 @@ namespace CleaningBot.Player.Weapons
             _floorGrid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);
 
             // 爆発範囲内の住人を吹き飛ばす
-            int residentCount = Physics.OverlapSphereNonAlloc(hitPoint, explosionRadius, _residentBuffer, ResidentLayer);
+            var residentHits = OverlapSphereWithFallback(hitPoint, explosionRadius, _residentBuffer, ResidentLayer, out int residentCount);
             for (int i = 0; i < residentCount; i++)
             {
-                var outDir = (_residentBuffer[i].transform.position - hitPoint).normalized;
+                var outDir = (residentHits[i].transform.position - hitPoint).normalized;
                 if (outDir == Vector3.zero) outDir = Vector3.up;
-                if (_residentBuffer[i].TryGetComponent<ResidentReactor>(out var reactor))
+                if (residentHits[i].TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.OnHit(outDir, _data.residentHitForce);
             }
 
             await UniTask.Delay(200, cancellationToken: ct);
+        }
+
+        private static Collider[] OverlapSphereWithFallback(
+            Vector3 pos, float radius, Collider[] buffer, int layerMask, out int count)
+        {
+            count = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
+            if (count < buffer.Length) return buffer;
+            var allHits = Physics.OverlapSphere(pos, radius, layerMask);
+            count = allHits.Length;
+            return allHits;
         }
     }
 }

@@ -16,7 +16,8 @@ namespace CleaningBot.Data
         public float throwRange;             // 投擲水平距離（m）。BlackHole のみ使用
 
         [Header("Effects")]
-        public ParticleSystem impactEffectPrefab; // Rocket: 爆発(one-shot) / BlackHole: 渦(loop) / Vacuum: 吸引コーン(loop)
-        public GameObject indicatorPrefab;        // BlackHole 着地予測マーカー Prefab（未設定時は CreatePrimitive にフォールバック）
+        public ParticleSystem impactEffectPrefab;   // Rocket: 爆発(one-shot) / BlackHole: 渦(loop) / Vacuum: 吸引コーン(loop)
+        public GameObject     indicatorPrefab;      // BlackHole 着地予測マーカー Prefab（未設定時は CreatePrimitive にフォールバック）
+        public Material       trajectoryLineMaterial; // BlackHole 軌道ライン用マテリアル（未設定時はデフォルト）
     }
 }

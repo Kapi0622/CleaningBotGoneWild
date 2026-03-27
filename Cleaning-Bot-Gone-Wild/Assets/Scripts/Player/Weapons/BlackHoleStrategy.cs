@@ -39,8 +39,6 @@ namespace CleaningBot.Player.Weapons
         // キャッシュ: 毎回 new Vector3[] を回避
         private readonly Vector3[] _arcPoints = new Vector3[ArcResolution];
 
-        // キャッシュ: LineRenderer 用マテリアル（初回のみ生成）
-        private Material _lrMat;
 
         // OverlapSphereNonAlloc 用バッファ
         private readonly Collider[] _garbageBuffer  = new Collider[32];
@@ -141,17 +139,7 @@ namespace CleaningBot.Player.Weapons
             lr.startWidth = 0.1f;
             lr.endWidth   = 0.05f;
 
-            // マテリアルキャッシュ（初回のみ生成）
-            if (_lrMat == null)
-            {
-                var urpUnlit = Shader.Find("Universal Render Pipeline/Unlit");
-                if (urpUnlit != null)
-                {
-                    _lrMat = new Material(urpUnlit);
-                    _lrMat.SetColor("_BaseColor", Color.cyan);
-                }
-            }
-            if (_lrMat != null) lr.material = _lrMat;
+            if (_data.trajectoryLineMaterial != null) lr.material = _data.trajectoryLineMaterial;
 
             // ---- 投擲物 Sphere ----
             var projectile = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -252,24 +240,24 @@ namespace CleaningBot.Player.Weapons
         /// <summary>ゴミを吸引半径内に引き寄せ、消滅半径内に入ったものを除去する。</summary>
         private void AttractAndRemoveGarbage(Vector3 center, float removeRadius)
         {
-            int count = Physics.OverlapSphereNonAlloc(center, _data.blastRadius, _garbageBuffer, GarbageLayer);
+            var hits = OverlapSphereWithFallback(center, _data.blastRadius, _garbageBuffer, GarbageLayer, out int count);
             for (int i = 0; i < count; i++)
             {
-                if (!_garbageBuffer[i].TryGetComponent<GarbageBase>(out var garbage)) continue;
+                if (!hits[i].TryGetComponent<GarbageBase>(out var garbage)) continue;
 
-                float dist = Vector3.Distance(_garbageBuffer[i].transform.position, center);
+                float dist = Vector3.Distance(hits[i].transform.position, center);
                 if (dist < removeRadius)
                 {
                     garbage.Remove();
                 }
                 else
                 {
-                    var inDir = (center - _garbageBuffer[i].transform.position).normalized;
-                    if (_garbageBuffer[i].TryGetComponent<Rigidbody>(out var rb))
+                    var inDir = (center - hits[i].transform.position).normalized;
+                    if (hits[i].TryGetComponent<Rigidbody>(out var rb))
                         rb.AddForce(inDir * GarbageAttractForce, ForceMode.Impulse);
                     else
-                        _garbageBuffer[i].transform.position = Vector3.MoveTowards(
-                            _garbageBuffer[i].transform.position, center, GarbageAttractStep);
+                        hits[i].transform.position = Vector3.MoveTowards(
+                            hits[i].transform.position, center, GarbageAttractStep);
                 }
             }
         }
@@ -277,19 +265,29 @@ namespace CleaningBot.Player.Weapons
         /// <summary>吸引終了時に残っているゴミを除去し、住人を内向きに吹き飛ばす。</summary>
         private void FinalCleanup(Vector3 center)
         {
-            int garbageCount = Physics.OverlapSphereNonAlloc(center, _data.blastRadius, _garbageBuffer, GarbageLayer);
+            var garbageHits = OverlapSphereWithFallback(center, _data.blastRadius, _garbageBuffer, GarbageLayer, out int garbageCount);
             for (int i = 0; i < garbageCount; i++)
-                if (_garbageBuffer[i].TryGetComponent<GarbageBase>(out var garbage))
+                if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
                     garbage.Remove();
 
-            int residentCount = Physics.OverlapSphereNonAlloc(center, _data.blastRadius, _residentBuffer, ResidentLayer);
+            var residentHits = OverlapSphereWithFallback(center, _data.blastRadius, _residentBuffer, ResidentLayer, out int residentCount);
             for (int i = 0; i < residentCount; i++)
             {
-                var inDir = (center - _residentBuffer[i].transform.position).normalized;
+                var inDir = (center - residentHits[i].transform.position).normalized;
                 if (inDir == Vector3.zero) inDir = Vector3.up;
-                if (_residentBuffer[i].TryGetComponent<ResidentReactor>(out var reactor))
+                if (residentHits[i].TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.OnHit(inDir, _data.residentHitForce);
             }
+        }
+
+        private static Collider[] OverlapSphereWithFallback(
+            Vector3 pos, float radius, Collider[] buffer, int layerMask, out int count)
+        {
+            count = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
+            if (count < buffer.Length) return buffer;
+            var allHits = Physics.OverlapSphere(pos, radius, layerMask);
+            count = allHits.Length;
+            return allHits;
         }
     }
 }
