@@ -4,6 +4,7 @@ using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player.Weapons;
 using CleaningBot.Score;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,6 +17,9 @@ namespace CleaningBot.Player
     [RequireComponent(typeof(AudioSource))]
     public class WeaponController : MonoBehaviour
     {
+        [Header("Camera")]
+        [SerializeField] private CinemachineImpulseSource _impulseSource;
+
         [Header("Audio")]
         [Tooltip("未設定時は自身の AudioSource を自動取得")]
         [SerializeField] private AudioSource _audioSource;
@@ -100,7 +104,7 @@ namespace CleaningBot.Player
             _locomotion = locomotion;
             _factory = new WeaponStrategyFactory(
                 weaponDataList, floorGrid, transform, _audioSource,
-                () => _locomotion.FacingDirection);
+                () => _locomotion.FacingDirection, _impulseSource);
             SwitchWeapon(WeaponType.Vacuum);
         }
 

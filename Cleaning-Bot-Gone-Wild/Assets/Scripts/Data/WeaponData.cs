@@ -19,5 +19,8 @@ namespace CleaningBot.Data
         public ParticleSystem impactEffectPrefab;   // Rocket: 爆発(one-shot) / BlackHole: 渦(loop) / Vacuum: 吸引コーン(loop)
         public GameObject     indicatorPrefab;      // BlackHole 着地予測マーカー Prefab（未設定時は CreatePrimitive にフォールバック）
         public Material       trajectoryLineMaterial; // BlackHole 軌道ライン用マテリアル（未設定時はデフォルト）
+
+        [Header("Camera")]
+        public float shakeIntensity; // スクリーンシェイク強度。Vacuum=0, Rocket=0.3, BlackHole=0.8
     }
 }

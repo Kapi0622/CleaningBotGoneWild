@@ -3,6 +3,7 @@ using CleaningBot.Data;
 using CleaningBot.Effects;
 using CleaningBot.Garbage;
 using CleaningBot.Resident;
+using Unity.Cinemachine;
 using UnityEngine;
 
 namespace CleaningBot.Player.Weapons
@@ -29,11 +30,12 @@ namespace CleaningBot.Player.Weapons
 
         private GameObject _activeEffect;
 
-        public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource)
+        public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource)
         {
             _data = data;
             _origin = origin;
             _audioSource = audioSource;
+            // impulseSource は shakeIntensity=0 のため使用しない
         }
 
         public void OnEquip() { }
