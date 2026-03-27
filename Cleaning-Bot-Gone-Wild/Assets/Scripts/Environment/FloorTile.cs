@@ -67,6 +67,9 @@ namespace CleaningBot.Environment
             _state = next;
             _collider.enabled = (next != TileState.Collapsed);
 
+            if (next == TileState.Cracked)   OnCracked();
+            if (next == TileState.Collapsed) OnCollapsed();
+
             // プロトタイプ用の色フィードバック（STEP 12 でテクスチャ/エフェクトに置き換え）
             Color color = next switch
             {
@@ -76,6 +79,12 @@ namespace CleaningBot.Environment
             };
             ApplyColor(color);
         }
+
+        /// <summary>STEP 12 でひびエフェクト・効果音再生に使用する。サブクラスでオーバーライドする。</summary>
+        protected virtual void OnCracked() { }
+
+        /// <summary>STEP 12 で崩壊エフェクト・効果音再生に使用する。サブクラスでオーバーライドする。</summary>
+        protected virtual void OnCollapsed() { }
 
         private void ApplyColor(Color color)
         {

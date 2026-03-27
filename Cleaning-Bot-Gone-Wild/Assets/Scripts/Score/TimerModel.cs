@@ -14,6 +14,11 @@ namespace CleaningBot.Score
         public bool IsTimeUp => RemainingTime.Value <= 0f;
         public float ElapsedTime => _initialTime - RemainingTime.Value;
 
+        /// <summary>残り時間が LowTimeThreshold 以下になったとき true を発火する。STEP 12 で警告演出に使用する。</summary>
+        public Observable<bool> IsLowTime
+            => RemainingTime.Select(t => t <= LowTimeThreshold).DistinctUntilChanged();
+
+        private const float LowTimeThreshold = 10f;
         private readonly float _initialTime;
 
         public TimerModel(float initialTime)

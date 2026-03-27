@@ -9,6 +9,7 @@ namespace CleaningBot.Presenter
     /// <summary>
     /// GameStateController の OnStateChanged を購読し、
     /// 各 Model から ResultData を組み立てて ResultView に渡す。
+    /// リトライボタンの購読も担当する。
     /// PresenterにはSubscribeとAddToしか書かない。
     /// </summary>
     public class ResultPresenter
@@ -20,6 +21,7 @@ namespace CleaningBot.Presenter
             TimerModel timerModel,
             RankCalculator rankCalc,
             StageData stageData,
+            StageResetter stageResetter,
             ResultView view)
         {
             stateCtrl.OnStateChanged
@@ -37,6 +39,10 @@ namespace CleaningBot.Presenter
                     if (state is ClearState) view.ShowClear(data);
                     else if (state is FailState) view.ShowFail(data);
                 })
+                .AddTo(view);
+
+            view.OnRetryClicked
+                .Subscribe(_ => stageResetter.Reset())
                 .AddTo(view);
         }
     }
