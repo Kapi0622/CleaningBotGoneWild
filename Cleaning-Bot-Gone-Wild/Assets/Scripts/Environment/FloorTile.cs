@@ -1,3 +1,4 @@
+using CleaningBot.Effects;
 using UnityEngine;
 
 namespace CleaningBot.Environment
@@ -11,6 +12,10 @@ namespace CleaningBot.Environment
     public class FloorTile : MonoBehaviour
     {
         [SerializeField] private int _maxHp = 2;
+
+        [Header("Effects")]
+        [SerializeField] private ParticleSystem _crackEffectPrefab;
+        [SerializeField] private ParticleSystem _collapseEffectPrefab;
 
         // MaterialPropertyBlock を使いマテリアルインスタンス化を防ぐ
         private static readonly int BaseColorID = Shader.PropertyToID("_BaseColor");
@@ -80,11 +85,9 @@ namespace CleaningBot.Environment
             ApplyColor(color);
         }
 
-        /// <summary>STEP 12 でひびエフェクト・効果音再生に使用する。サブクラスでオーバーライドする。</summary>
-        protected virtual void OnCracked() { }
+        protected virtual void OnCracked()   => ParticlePlayer.PlayAt(_crackEffectPrefab, transform.position);
 
-        /// <summary>STEP 12 で崩壊エフェクト・効果音再生に使用する。サブクラスでオーバーライドする。</summary>
-        protected virtual void OnCollapsed() { }
+        protected virtual void OnCollapsed() => ParticlePlayer.PlayAt(_collapseEffectPrefab, transform.position);
 
         private void ApplyColor(Color color)
         {

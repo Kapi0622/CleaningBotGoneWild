@@ -1,5 +1,6 @@
 using System.Threading;
 using CleaningBot.Data;
+using CleaningBot.Effects;
 using CleaningBot.Garbage;
 using CleaningBot.Resident;
 using UnityEngine;
@@ -18,9 +19,15 @@ namespace CleaningBot.Player.Weapons
         private static readonly int GarbageLayer  = LayerMask.GetMask("Garbage");
         private static readonly int ResidentLayer = LayerMask.GetMask("Resident");
 
+        // OverlapSphereNonAlloc 用バッファ
+        private readonly Collider[] _garbageBuffer  = new Collider[32];
+        private readonly Collider[] _residentBuffer = new Collider[16];
+
         private readonly WeaponData _data;
         private readonly Transform _origin;
         private readonly AudioSource _audioSource;
+
+        private GameObject _activeEffect;
 
         public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource)
         {
@@ -30,34 +37,78 @@ namespace CleaningBot.Player.Weapons
         }
 
         public void OnEquip() { }
-        public void OnUnequip() { }
+
+        public void OnUnequip()
+        {
+            StopEffect();
+        }
+
+        public void OnExecuteEnd()
+        {
+            StopEffect();
+        }
+
+        private void StopEffect()
+        {
+            if (_activeEffect) UnityEngine.Object.Destroy(_activeEffect);
+            _activeEffect = null;
+        }
 
         public bool CanExecute() => true;
+
+        /// <summary>
+        /// NonAlloc でオーバーラップを取得する。バッファが埋まった場合（超過の可能性あり）は
+        /// Alloc 版にフォールバックして取りこぼしを防ぐ。
+        /// 通常ケースはゼロアロック。
+        /// </summary>
+        private static Collider[] OverlapSphereWithFallback(
+            Vector3 pos, float radius, Collider[] buffer, int layerMask, out int count)
+        {
+            count = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
+            if (count < buffer.Length) return buffer;
+            // バッファが埋まった → 超過分が切り捨てられている可能性があるため Alloc 版で再取得
+            var allHits = Physics.OverlapSphere(pos, radius, layerMask);
+            count = allHits.Length;
+            return allHits;
+        }
 
         public void Execute(Vector3 direction, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
 
-            var hits = Physics.OverlapSphere(_origin.position, Range, GarbageLayer);
-            foreach (var hit in hits)
+            // 吸引コーンエフェクト（ループ）: 未生成なら起動、生成済みなら位置・向きを追従
+            var effectRotation = direction != Vector3.zero
+                ? Quaternion.LookRotation(direction)
+                : _origin.rotation;
+
+            if (_activeEffect == null)
             {
-                // 原点からターゲットへの方向と FacingDirection の内積で前方コーン判定
-                var toTarget = (hit.transform.position - _origin.position).normalized;
+                _activeEffect = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, _origin.position, effectRotation);
+            }
+            else
+            {
+                _activeEffect.transform.SetPositionAndRotation(_origin.position, effectRotation);
+            }
+
+            var garbageHits = OverlapSphereWithFallback(_origin.position, Range, _garbageBuffer, GarbageLayer, out int garbageCount);
+            for (int i = 0; i < garbageCount; i++)
+            {
+                var toTarget = (garbageHits[i].transform.position - _origin.position).normalized;
                 if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
 
-                if (hit.TryGetComponent<GarbageBase>(out var garbage))
+                if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
                 {
                     garbage.Remove();
                 }
             }
 
             // 同じ前方コーン内にいる住人に怒り状態をトリガーする
-            var residentHits = Physics.OverlapSphere(_origin.position, Range, ResidentLayer);
-            foreach (var hit in residentHits)
+            var residentHits = OverlapSphereWithFallback(_origin.position, Range, _residentBuffer, ResidentLayer, out int residentCount);
+            for (int i = 0; i < residentCount; i++)
             {
-                var toTarget = (hit.transform.position - _origin.position).normalized;
+                var toTarget = (residentHits[i].transform.position - _origin.position).normalized;
                 if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
-                if (hit.TryGetComponent<ResidentReactor>(out var reactor))
+                if (residentHits[i].TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.TriggerAngry();
             }
 

@@ -126,3 +126,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Garbage.NormalGarbage
   <Data>k__BackingField: {fileID: 11400000, guid: 6a57f641ffa7b5f4c8f8059bd31bfaa9, type: 2}
+  _removalEffectPrefab: {fileID: 9157105887693468085, guid: c4f829cb7dd4b864caf8832ec5b1ee55, type: 3}

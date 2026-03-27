@@ -1,5 +1,6 @@
 using System.Threading;
 using CleaningBot.Data;
+using CleaningBot.Effects;
 using CleaningBot.Environment;
 using CleaningBot.Garbage;
 using CleaningBot.Resident;
@@ -20,6 +21,10 @@ namespace CleaningBot.Player.Weapons
         private static readonly int HitLayer      = LayerMask.GetMask("Garbage", "Environment");
         private static readonly int ResidentLayer = LayerMask.GetMask("Resident");
 
+        // OverlapSphereNonAlloc 用バッファ
+        private readonly Collider[] _garbageBuffer  = new Collider[32];
+        private readonly Collider[] _residentBuffer = new Collider[16];
+
         private readonly WeaponData _data;
         private readonly FloorGrid _floorGrid;
         private readonly Transform _origin;
@@ -37,6 +42,7 @@ namespace CleaningBot.Player.Weapons
 
         public void OnEquip() { }
         public void OnUnequip() { }
+        public void OnExecuteEnd() { }
 
         public bool CanExecute() => Time.time >= _lastFireTime + _data.cooldown;
 
@@ -59,13 +65,14 @@ namespace CleaningBot.Player.Weapons
             bool didHit = Physics.Raycast(ray, out var hit, RayDistance, HitLayer);
             var hitPoint = didHit ? hit.point : _origin.position + direction * RayDistance;
 
-            // 着弾点の爆発範囲内にあるゴミを OverlapSphere で一括検出・除去
-            // Raycast が壁に当たっても、壁際のゴミは爆風で消える
+            ParticlePlayer.PlayAt(_data.impactEffectPrefab, hitPoint);
+
+            // 着弾点の爆発範囲内にあるゴミを一括検出・除去
             var explosionRadius = Mathf.Max(_data.blastRadius, 0.5f);
-            var garbageHits = Physics.OverlapSphere(hitPoint, explosionRadius, GarbageLayer);
-            foreach (var g in garbageHits)
+            var garbageHits = OverlapSphereWithFallback(hitPoint, explosionRadius, _garbageBuffer, GarbageLayer, out int garbageCount);
+            for (int i = 0; i < garbageCount; i++)
             {
-                if (g.TryGetComponent<GarbageBase>(out var garbage))
+                if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
                 {
                     garbage.Remove();
                 }
@@ -74,16 +81,26 @@ namespace CleaningBot.Player.Weapons
             _floorGrid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);
 
             // 爆発範囲内の住人を吹き飛ばす
-            var residentHits = Physics.OverlapSphere(hitPoint, explosionRadius, ResidentLayer);
-            foreach (var r in residentHits)
+            var residentHits = OverlapSphereWithFallback(hitPoint, explosionRadius, _residentBuffer, ResidentLayer, out int residentCount);
+            for (int i = 0; i < residentCount; i++)
             {
-                var outDir = (r.transform.position - hitPoint).normalized;
+                var outDir = (residentHits[i].transform.position - hitPoint).normalized;
                 if (outDir == Vector3.zero) outDir = Vector3.up;
-                if (r.TryGetComponent<ResidentReactor>(out var reactor))
+                if (residentHits[i].TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.OnHit(outDir, _data.residentHitForce);
             }
 
             await UniTask.Delay(200, cancellationToken: ct);
+        }
+
+        private static Collider[] OverlapSphereWithFallback(
+            Vector3 pos, float radius, Collider[] buffer, int layerMask, out int count)
+        {
+            count = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
+            if (count < buffer.Length) return buffer;
+            var allHits = Physics.OverlapSphere(pos, radius, layerMask);
+            count = allHits.Length;
+            return allHits;
         }
     }
 }
