@@ -12,8 +12,17 @@ namespace CleaningBot.Score
         public readonly ReactiveProperty<int> MainScore = new(0);
         public readonly ReactiveProperty<int> SubScore  = new(0);
 
+        private readonly Subject<int> _onSubScoreAdded = new();
+        /// <summary>サブスコアが加算されるたびに加算額を発火する。STEP 12 でフローティングスコア演出に使用する。</summary>
+        public Observable<int> OnSubScoreAdded => _onSubScoreAdded;
+
         public void AddMainScore(int value) => MainScore.Value += value;
-        public void AddSubScore(int value)  => SubScore.Value  += value;
+
+        public void AddSubScore(int value)
+        {
+            SubScore.Value += value;
+            _onSubScoreAdded.OnNext(value);
+        }
 
         public void Reset()
         {

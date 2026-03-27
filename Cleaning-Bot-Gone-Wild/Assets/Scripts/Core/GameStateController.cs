@@ -15,7 +15,9 @@ namespace CleaningBot.Core
         public readonly GameTimer GameTimer;
         public readonly TimerModel TimerModel;
         public readonly Transform PlayerTransform;
-        public readonly Subject<IGameState> OnStateChanged = new();
+
+        private readonly Subject<IGameState> _onStateChanged = new();
+        public Observable<IGameState> OnStateChanged => _onStateChanged;
 
         public IGameState CurrentState => _current;
 
@@ -32,8 +34,8 @@ namespace CleaningBot.Core
         {
             _current?.OnExit(this);
             _current = next;
-            _current.OnEnter(this);      // StopTimer / StartTimer はここで実行
-            OnStateChanged.OnNext(next); // ResultPresenter はここで ResultData を組み立てる
+            _current.OnEnter(this);       // StopTimer / StartTimer はここで実行
+            _onStateChanged.OnNext(next); // ResultPresenter はここで ResultData を組み立てる
         }
 
         public void Update() => _current?.Update(this);

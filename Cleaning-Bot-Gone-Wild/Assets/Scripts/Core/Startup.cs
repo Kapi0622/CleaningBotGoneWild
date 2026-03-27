@@ -5,7 +5,6 @@ using CleaningBot.Presenter;
 using CleaningBot.Score;
 using CleaningBot.Stage;
 using CleaningBot.View;
-using R3;
 using UnityEngine;
 
 namespace CleaningBot.Core
@@ -65,19 +64,16 @@ namespace CleaningBot.Core
             // 5. WeaponController（WeaponModel 注入）
             _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, stageData.weaponDataList);
 
-            // 6. ResultPresenter（必ず ChangeState より前に初期化する）
-            new ResultPresenter().Initialize(
-                gameStateController, scoreModel, garbageModel,
-                timerModel, new RankCalculator(), stageData, _resultView);
-
-            // 7. StageResetter を生成し、リトライボタンと接続
+            // 6. StageResetter を生成（リトライ処理の実体）
             var stageResetter = new StageResetter(
                 scoreModel, timerModel, weaponModel, garbageModel,
                 _floorGrid, _stageInitializer, garbageTracker,
                 _playerLocomotion.transform, stageData, gameStateController);
-            _resultView.OnRetryClicked
-                .Subscribe(_ => stageResetter.Reset())
-                .AddTo(_resultView);
+
+            // 7. ResultPresenter（リトライ購読含む。必ず ChangeState より前に初期化する）
+            new ResultPresenter().Initialize(
+                gameStateController, scoreModel, garbageModel,
+                timerModel, new RankCalculator(), stageData, stageResetter, _resultView);
 
             // 8. ゲーム開始（最終行）
             gameStateController.ChangeState(new InGameState());

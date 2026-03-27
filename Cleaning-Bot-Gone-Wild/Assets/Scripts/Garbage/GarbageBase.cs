@@ -21,9 +21,13 @@ namespace CleaningBot.Garbage
         {
             if (_isRemoved) return;
             _isRemoved = true;
+            OnRemovalEffect();
             OnRemoved.OnNext(this);
             OnRemoved.Dispose();
             Destroy(gameObject);
         }
+
+        /// <summary>STEP 12 でゴミ消滅エフェクト・効果音再生に使用する。サブクラスでオーバーライドする。</summary>
+        protected virtual void OnRemovalEffect() { }
     }
 }

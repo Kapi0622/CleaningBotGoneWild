@@ -8,8 +8,9 @@ namespace CleaningBot.Core
     /// <summary>
     /// 残りゴミ数の追跡・スコア加算・クリア判定。
     /// 全ゴミ除去時に GameStateController.ChangeState(new ClearState()) を呼ぶ。
+    /// IDisposable を実装し、ライフサイクル終了時に購読を確実に解除できる。
     /// </summary>
-    public class GarbageTracker
+    public class GarbageTracker : IDisposable
     {
         private readonly GarbageModel _model;
         private readonly ScoreModel _scoreModel;
@@ -38,5 +39,7 @@ namespace CleaningBot.Core
                     _stateController.ChangeState(new ClearState());
                 });
         }
+
+        public void Dispose() => _subscription?.Dispose();
     }
 }

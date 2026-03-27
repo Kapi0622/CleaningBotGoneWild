@@ -18,7 +18,7 @@ namespace CleaningBot.Garbage
         {
             if (garbage == null) throw new ArgumentNullException(nameof(garbage));
             garbage.OnRemoved
-                .Subscribe(g => _model.OnGarbageRemoved.OnNext(g))
+                .Subscribe(g => _model.NotifyRemoved(g))
                 .AddTo(garbage); // ゴミが Destroy されたら自動 Dispose
         }
     }
