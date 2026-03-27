@@ -1,5 +1,6 @@
 using System.Threading;
 using CleaningBot.Data;
+using CleaningBot.Effects;
 using CleaningBot.Garbage;
 using CleaningBot.Resident;
 using UnityEngine;
@@ -18,9 +19,15 @@ namespace CleaningBot.Player.Weapons
         private static readonly int GarbageLayer  = LayerMask.GetMask("Garbage");
         private static readonly int ResidentLayer = LayerMask.GetMask("Resident");
 
+        // OverlapSphereNonAlloc 用バッファ
+        private readonly Collider[] _garbageBuffer  = new Collider[32];
+        private readonly Collider[] _residentBuffer = new Collider[16];
+
         private readonly WeaponData _data;
         private readonly Transform _origin;
         private readonly AudioSource _audioSource;
+
+        private GameObject _activeEffect;
 
         public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource)
         {
@@ -30,7 +37,22 @@ namespace CleaningBot.Player.Weapons
         }
 
         public void OnEquip() { }
-        public void OnUnequip() { }
+
+        public void OnUnequip()
+        {
+            StopEffect();
+        }
+
+        public void OnExecuteEnd()
+        {
+            StopEffect();
+        }
+
+        private void StopEffect()
+        {
+            if (_activeEffect) UnityEngine.Object.Destroy(_activeEffect);
+            _activeEffect = null;
+        }
 
         public bool CanExecute() => true;
 
@@ -38,26 +60,36 @@ namespace CleaningBot.Player.Weapons
         {
             if (ct.IsCancellationRequested) return;
 
-            var hits = Physics.OverlapSphere(_origin.position, Range, GarbageLayer);
-            foreach (var hit in hits)
+            // 吸引コーンエフェクト（ループ）: 未生成なら起動、生成済みなら位置・向きを追従
+            if (_activeEffect == null)
             {
-                // 原点からターゲットへの方向と FacingDirection の内積で前方コーン判定
-                var toTarget = (hit.transform.position - _origin.position).normalized;
+                _activeEffect = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, _origin.position);
+            }
+            else
+            {
+                _activeEffect.transform.position = _origin.position;
+                _activeEffect.transform.rotation = Quaternion.LookRotation(direction);
+            }
+
+            int garbageCount = Physics.OverlapSphereNonAlloc(_origin.position, Range, _garbageBuffer, GarbageLayer);
+            for (int i = 0; i < garbageCount; i++)
+            {
+                var toTarget = (_garbageBuffer[i].transform.position - _origin.position).normalized;
                 if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
 
-                if (hit.TryGetComponent<GarbageBase>(out var garbage))
+                if (_garbageBuffer[i].TryGetComponent<GarbageBase>(out var garbage))
                 {
                     garbage.Remove();
                 }
             }
 
             // 同じ前方コーン内にいる住人に怒り状態をトリガーする
-            var residentHits = Physics.OverlapSphere(_origin.position, Range, ResidentLayer);
-            foreach (var hit in residentHits)
+            int residentCount = Physics.OverlapSphereNonAlloc(_origin.position, Range, _residentBuffer, ResidentLayer);
+            for (int i = 0; i < residentCount; i++)
             {
-                var toTarget = (hit.transform.position - _origin.position).normalized;
+                var toTarget = (_residentBuffer[i].transform.position - _origin.position).normalized;
                 if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
-                if (hit.TryGetComponent<ResidentReactor>(out var reactor))
+                if (_residentBuffer[i].TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.TriggerAngry();
             }
 

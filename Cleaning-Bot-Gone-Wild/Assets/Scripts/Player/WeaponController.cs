@@ -126,6 +126,11 @@ namespace CleaningBot.Player
             {
                 _currentStrategy.Execute(_locomotion.FacingDirection, _cts.Token);
             }
+
+            if (_useAction.WasReleasedThisFrame() && _currentStrategy != null)
+            {
+                _currentStrategy.OnExecuteEnd();
+            }
         }
 
         private void OnDestroy()

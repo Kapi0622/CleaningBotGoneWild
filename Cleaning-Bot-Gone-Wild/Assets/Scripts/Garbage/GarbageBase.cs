@@ -1,6 +1,7 @@
+using CleaningBot.Effects;
+using CleaningBot.Data;
 using R3;
 using UnityEngine;
-using CleaningBot.Data;
 
 namespace CleaningBot.Garbage
 {
@@ -12,6 +13,9 @@ namespace CleaningBot.Garbage
     public abstract class GarbageBase : MonoBehaviour
     {
         [field: SerializeField] public GarbageData Data { get; private set; }
+
+        [Header("Effects")]
+        [SerializeField] private ParticleSystem _removalEffectPrefab;
 
         public readonly Subject<GarbageBase> OnRemoved = new();
 
@@ -27,7 +31,6 @@ namespace CleaningBot.Garbage
             Destroy(gameObject);
         }
 
-        /// <summary>STEP 12 でゴミ消滅エフェクト・効果音再生に使用する。サブクラスでオーバーライドする。</summary>
-        protected virtual void OnRemovalEffect() { }
+        protected virtual void OnRemovalEffect() => ParticlePlayer.PlayAt(_removalEffectPrefab, transform.position);
     }
 }

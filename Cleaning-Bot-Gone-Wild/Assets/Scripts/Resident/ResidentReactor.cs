@@ -1,3 +1,4 @@
+using CleaningBot.Effects;
 using CleaningBot.Score;
 using UnityEngine;
 
@@ -12,6 +13,9 @@ namespace CleaningBot.Resident
     public class ResidentReactor : MonoBehaviour
     {
         [SerializeField] private int _subScoreValue = 50;
+
+        [Header("Effects")]
+        [SerializeField] private ParticleSystem _hitEffectPrefab;
 
         private ResidentMover _mover;
         private Rigidbody     _rb;
@@ -34,6 +38,7 @@ namespace CleaningBot.Resident
             _rb.AddForce(forceDirection * force, ForceMode.Impulse);
             _scoreModel?.AddSubScore(_subScoreValue);
             _mover.SetState(ResidentState.Hit);
+            ParticlePlayer.PlayAt(_hitEffectPrefab, transform.position);
             Debug.Log($"[ResidentReactor] {name} hit! SubScore: {_scoreModel?.SubScore.Value ?? 0}");
         }
 

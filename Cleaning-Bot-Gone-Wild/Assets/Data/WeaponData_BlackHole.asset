@@ -19,3 +19,5 @@ MonoBehaviour:
   fireSound: {fileID: 0}
   residentHitForce: 12
   throwRange: 10
+  impactEffectPrefab: {fileID: 5824670795371433368, guid: f6fd568b816c64943a44efc3add3a881, type: 3}
+  indicatorPrefab: {fileID: 0}

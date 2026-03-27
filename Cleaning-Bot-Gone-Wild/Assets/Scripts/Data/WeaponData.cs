@@ -14,5 +14,9 @@ namespace CleaningBot.Data
         public AudioClip fireSound;      // 仮 SE 用。未設定時は無音
         public float residentHitForce = 8f; // 住人に加える吹き飛び力（Impulse）
         public float throwRange;             // 投擲水平距離（m）。BlackHole のみ使用
+
+        [Header("Effects")]
+        public ParticleSystem impactEffectPrefab; // Rocket: 爆発(one-shot) / BlackHole: 渦(loop) / Vacuum: 吸引コーン(loop)
+        public GameObject indicatorPrefab;        // BlackHole 着地予測マーカー Prefab（未設定時は CreatePrimitive にフォールバック）
     }
 }
