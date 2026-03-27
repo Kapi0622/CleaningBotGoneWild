@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CleaningBot.Data;
 using CleaningBot.Environment;
+using Unity.Cinemachine;
 using UnityEngine;
 
 namespace CleaningBot.Player.Weapons
@@ -20,22 +21,23 @@ namespace CleaningBot.Player.Weapons
             FloorGrid floorGrid,
             Transform origin,
             AudioSource audioSource,
-            Func<Vector3> getFacingDirection)
+            Func<Vector3> getFacingDirection,
+            CinemachineImpulseSource impulseSource)
         {
             _strategies = new Dictionary<WeaponType, IWeaponStrategy>
             {
                 {
                     WeaponType.Vacuum,
-                    new VacuumStrategy(GetData(dataList, WeaponType.Vacuum), origin, audioSource)
+                    new VacuumStrategy(GetData(dataList, WeaponType.Vacuum), origin, audioSource, impulseSource)
                 },
                 {
                     WeaponType.Rocket,
-                    new RocketStrategy(GetData(dataList, WeaponType.Rocket), floorGrid, origin, audioSource)
+                    new RocketStrategy(GetData(dataList, WeaponType.Rocket), floorGrid, origin, audioSource, impulseSource)
                 },
                 {
                     WeaponType.BlackHole,
                     new BlackHoleStrategy(
-                        GetData(dataList, WeaponType.BlackHole), floorGrid, origin, audioSource, getFacingDirection)
+                        GetData(dataList, WeaponType.BlackHole), floorGrid, origin, audioSource, getFacingDirection, impulseSource)
                 },
             };
         }

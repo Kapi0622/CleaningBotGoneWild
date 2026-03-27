@@ -6,6 +6,7 @@ using CleaningBot.Environment;
 using CleaningBot.Garbage;
 using CleaningBot.Resident;
 using Cysharp.Threading.Tasks;
+using Unity.Cinemachine;
 using UnityEngine;
 
 namespace CleaningBot.Player.Weapons
@@ -30,11 +31,12 @@ namespace CleaningBot.Player.Weapons
         private static readonly int GarbageLayer  = LayerMask.GetMask("Garbage");
         private static readonly int ResidentLayer = LayerMask.GetMask("Resident");
 
-        private readonly WeaponData    _data;
-        private readonly FloorGrid     _floorGrid;
-        private readonly Transform     _origin;
-        private readonly AudioSource   _audioSource;
-        private readonly Func<Vector3> _getFacingDirection;
+        private readonly WeaponData                _data;
+        private readonly FloorGrid                 _floorGrid;
+        private readonly Transform                 _origin;
+        private readonly AudioSource               _audioSource;
+        private readonly Func<Vector3>             _getFacingDirection;
+        private readonly CinemachineImpulseSource  _impulseSource;
 
         // キャッシュ: 毎回 new Vector3[] を回避
         private readonly Vector3[] _arcPoints = new Vector3[ArcResolution];
@@ -53,13 +55,15 @@ namespace CleaningBot.Player.Weapons
             FloorGrid floorGrid,
             Transform origin,
             AudioSource audioSource,
-            Func<Vector3> getFacingDirection)
+            Func<Vector3> getFacingDirection,
+            CinemachineImpulseSource impulseSource)
         {
             _data               = data;
             _floorGrid          = floorGrid;
             _origin             = origin;
             _audioSource        = audioSource;
             _getFacingDirection = getFacingDirection ?? throw new ArgumentNullException(nameof(getFacingDirection));
+            _impulseSource      = impulseSource;
         }
 
         public void OnEquip()
@@ -169,6 +173,7 @@ namespace CleaningBot.Player.Weapons
                 projectile.transform.position   = landingPoint;
                 projectile.transform.localScale = Vector3.one * 1.5f;
                 _activeVortex = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, landingPoint);
+                _impulseSource?.GenerateImpulse(_data.shakeIntensity);
 
                 int   tickCount   = Mathf.Max(1, Mathf.CeilToInt(SuctionDuration / DamageTickInterval));
                 int   totalDamage = Mathf.RoundToInt(_data.floorDamage);

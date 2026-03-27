@@ -3,6 +3,7 @@ using CleaningBot.Data;
 using CleaningBot.Effects;
 using CleaningBot.Garbage;
 using CleaningBot.Resident;
+using Unity.Cinemachine;
 using UnityEngine;
 
 namespace CleaningBot.Player.Weapons
@@ -23,17 +24,19 @@ namespace CleaningBot.Player.Weapons
         private readonly Collider[] _garbageBuffer  = new Collider[32];
         private readonly Collider[] _residentBuffer = new Collider[16];
 
-        private readonly WeaponData _data;
-        private readonly Transform _origin;
-        private readonly AudioSource _audioSource;
+        private readonly WeaponData              _data;
+        private readonly Transform               _origin;
+        private readonly AudioSource             _audioSource;
+        private readonly CinemachineImpulseSource _impulseSource;
 
         private GameObject _activeEffect;
 
-        public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource)
+        public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource)
         {
-            _data = data;
-            _origin = origin;
-            _audioSource = audioSource;
+            _data          = data;
+            _origin        = origin;
+            _audioSource   = audioSource;
+            _impulseSource = impulseSource;
         }
 
         public void OnEquip() { }
@@ -84,6 +87,8 @@ namespace CleaningBot.Player.Weapons
             if (_activeEffect == null)
             {
                 _activeEffect = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, _origin.position, effectRotation);
+                if (_data.shakeIntensity > 0f)
+                    _impulseSource?.GenerateImpulse(_data.shakeIntensity);
             }
             else
             {

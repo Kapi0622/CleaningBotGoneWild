@@ -5,6 +5,7 @@ using CleaningBot.Environment;
 using CleaningBot.Garbage;
 using CleaningBot.Resident;
 using Cysharp.Threading.Tasks;
+using Unity.Cinemachine;
 using UnityEngine;
 
 namespace CleaningBot.Player.Weapons
@@ -29,15 +30,17 @@ namespace CleaningBot.Player.Weapons
         private readonly FloorGrid _floorGrid;
         private readonly Transform _origin;
         private readonly AudioSource _audioSource;
+        private readonly CinemachineImpulseSource _impulseSource;
 
         private float _lastFireTime = float.MinValue;
 
-        public RocketStrategy(WeaponData data, FloorGrid floorGrid, Transform origin, AudioSource audioSource)
+        public RocketStrategy(WeaponData data, FloorGrid floorGrid, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource)
         {
             _data = data;
             _floorGrid = floorGrid;
             _origin = origin;
             _audioSource = audioSource;
+            _impulseSource = impulseSource;
         }
 
         public void OnEquip() { }
@@ -66,6 +69,7 @@ namespace CleaningBot.Player.Weapons
             var hitPoint = didHit ? hit.point : _origin.position + direction * RayDistance;
 
             ParticlePlayer.PlayAt(_data.impactEffectPrefab, hitPoint);
+            _impulseSource?.GenerateImpulse(_data.shakeIntensity);
 
             // 着弾点の爆発範囲内にあるゴミを一括検出・除去
             var explosionRadius = Mathf.Max(_data.blastRadius, 0.5f);

@@ -4,6 +4,7 @@ using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player.Weapons;
 using CleaningBot.Score;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,8 +15,13 @@ namespace CleaningBot.Player
     /// Input 受付・CancellationToken 管理が責務。ビジネスロジックは各 Strategy に委譲する。
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
+    [RequireComponent(typeof(CinemachineImpulseSource))]
     public class WeaponController : MonoBehaviour
     {
+        [Header("Camera")]
+        [Tooltip("未設定時は自身の CinemachineImpulseSource を自動取得")]
+        [SerializeField] private CinemachineImpulseSource _impulseSource;
+
         [Header("Audio")]
         [Tooltip("未設定時は自身の AudioSource を自動取得")]
         [SerializeField] private AudioSource _audioSource;
@@ -40,6 +46,8 @@ namespace CleaningBot.Player
         {
             if (_audioSource == null)
                 _audioSource = GetComponent<AudioSource>();
+            if (_impulseSource == null)
+                _impulseSource = GetComponent<CinemachineImpulseSource>();
 
             if (_useAction.bindings.Count == 0)
             {
@@ -95,12 +103,14 @@ namespace CleaningBot.Player
             // Awake() の実行順序に依存しないよう、ここでも null チェックする
             if (_audioSource == null)
                 _audioSource = GetComponent<AudioSource>();
+            if (_impulseSource == null)
+                _impulseSource = GetComponent<CinemachineImpulseSource>();
 
             _weaponModel = weaponModel;
             _locomotion = locomotion;
             _factory = new WeaponStrategyFactory(
                 weaponDataList, floorGrid, transform, _audioSource,
-                () => _locomotion.FacingDirection);
+                () => _locomotion.FacingDirection, _impulseSource);
             SwitchWeapon(WeaponType.Vacuum);
         }
 

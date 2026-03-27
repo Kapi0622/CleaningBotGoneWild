@@ -22,3 +22,4 @@ MonoBehaviour:
   impactEffectPrefab: {fileID: 5824670795371433368, guid: f6fd568b816c64943a44efc3add3a881, type: 3}
   indicatorPrefab: {fileID: 0}
   trajectoryLineMaterial: {fileID: 2100000, guid: 33a915133f304e941bb28bf67a46d970, type: 2}
+  shakeIntensity: 0.8
