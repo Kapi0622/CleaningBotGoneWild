@@ -173,6 +173,8 @@ namespace CleaningBot.Player.Weapons
                 projectile.transform.position   = landingPoint;
                 projectile.transform.localScale = Vector3.one * 1.5f;
                 _activeVortex = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, landingPoint);
+                if (_data.impactSound != null)
+                    _audioSource.PlayOneShot(_data.impactSound);
                 _impulseSource?.GenerateImpulse(_data.shakeIntensity);
 
                 int   tickCount   = Mathf.Max(1, Mathf.CeilToInt(SuctionDuration / DamageTickInterval));

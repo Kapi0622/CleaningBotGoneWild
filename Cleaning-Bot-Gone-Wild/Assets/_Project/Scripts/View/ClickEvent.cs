@@ -1,3 +1,4 @@
+using CleaningBot.Audio;
 using R3;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -28,7 +29,11 @@ namespace CleaningBot.View
         [Header("Interactable")]
         [SerializeField] private bool _interactable = true;
 
+        [Header("Audio")]
+        [SerializeField] private AudioClip _clickSound; // 未設定なら UiSoundPlayer の共通SE にフォールバック
+
         private Image _image;
+        private UiSoundPlayer _soundPlayer;
         private readonly Subject<Unit> _onClick = new();
         public Observable<Unit> OnClicked => _onClick;
 
@@ -45,12 +50,17 @@ namespace CleaningBot.View
         private void Awake()
         {
             _image = GetComponent<Image>();
+            _soundPlayer = GetComponentInParent<UiSoundPlayer>();
             ApplyColor(_interactable ? _normalColor : _disabledColor);
         }
 
         public void OnPointerClick(PointerEventData _)
         {
             if (!_interactable) return;
+            if (_clickSound != null)
+                AudioSource.PlayClipAtPoint(_clickSound, transform.position);
+            else
+                _soundPlayer?.PlayDefaultSound();
             _onClick.OnNext(Unit.Default);
         }
 

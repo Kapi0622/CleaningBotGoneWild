@@ -17,6 +17,9 @@ namespace CleaningBot.Resident
         [Header("Effects")]
         [SerializeField] private ParticleSystem _hitEffectPrefab;
 
+        [Header("Audio")]
+        [SerializeField] private AudioClip _hitSound;
+
         private ResidentMover _mover;
         private Rigidbody     _rb;
         private ScoreModel    _scoreModel;
@@ -39,6 +42,8 @@ namespace CleaningBot.Resident
             _scoreModel?.AddSubScore(_subScoreValue);
             _mover.SetState(ResidentState.Hit);
             ParticlePlayer.PlayAt(_hitEffectPrefab, transform.position);
+            if (_hitSound != null)
+                AudioSource.PlayClipAtPoint(_hitSound, transform.position);
             Debug.Log($"[ResidentReactor] {name} hit! SubScore: {_scoreModel?.SubScore.Value ?? 0}");
         }
 

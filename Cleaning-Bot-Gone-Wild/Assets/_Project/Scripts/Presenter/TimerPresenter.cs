@@ -15,6 +15,10 @@ namespace CleaningBot.Presenter
             model.RemainingTime
                 .Subscribe(v => view.UpdateTimer(v))
                 .AddTo(view);
+
+            model.IsLowTime
+                .Subscribe(isLow => view.SetWarning(isLow))
+                .AddTo(view);
         }
     }
 }

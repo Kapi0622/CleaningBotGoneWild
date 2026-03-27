@@ -69,6 +69,8 @@ namespace CleaningBot.Player.Weapons
             var hitPoint = didHit ? hit.point : _origin.position + direction * RayDistance;
 
             ParticlePlayer.PlayAt(_data.impactEffectPrefab, hitPoint);
+            if (_data.impactSound != null)
+                _audioSource.PlayOneShot(_data.impactSound);
             _impulseSource?.GenerateImpulse(_data.shakeIntensity);
 
             // 着弾点の爆発範囲内にあるゴミを一括検出・除去

@@ -1,3 +1,4 @@
+using CleaningBot.Audio;
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player;
@@ -25,6 +26,10 @@ namespace CleaningBot.Core
         [Header("Stage")]
         [SerializeField] private StageData _stageData;
         [SerializeField] private StageInitializer _stageInitializer;
+
+        [Header("Audio")]
+        [SerializeField] private BgmPlayer _bgmPlayer;
+        [SerializeField] private AudioConfig _audioConfig;
 
         [Header("Views")]
         [SerializeField] private ScoreView _scoreView;
@@ -75,7 +80,10 @@ namespace CleaningBot.Core
                 gameStateController, scoreModel, garbageModel,
                 timerModel, new RankCalculator(), stageData, stageResetter, _resultView);
 
-            // 8. ゲーム開始（最終行）
+            // 8. BGM 開始
+            _bgmPlayer.Initialize(_audioConfig);
+
+            // 9. ゲーム開始（最終行）
             gameStateController.ChangeState(new InGameState());
         }
     }

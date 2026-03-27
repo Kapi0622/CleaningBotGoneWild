@@ -17,6 +17,9 @@ namespace CleaningBot.Garbage
         [Header("Effects")]
         [SerializeField] private ParticleSystem _removalEffectPrefab;
 
+        [Header("Audio")]
+        [SerializeField] private AudioClip _removalSound;
+
         public readonly Subject<GarbageBase> OnRemoved = new();
 
         private bool _isRemoved;
@@ -31,6 +34,11 @@ namespace CleaningBot.Garbage
             Destroy(gameObject);
         }
 
-        protected virtual void OnRemovalEffect() => ParticlePlayer.PlayAt(_removalEffectPrefab, transform.position);
+        protected virtual void OnRemovalEffect()
+        {
+            ParticlePlayer.PlayAt(_removalEffectPrefab, transform.position);
+            if (_removalSound != null)
+                AudioSource.PlayClipAtPoint(_removalSound, transform.position);
+        }
     }
 }

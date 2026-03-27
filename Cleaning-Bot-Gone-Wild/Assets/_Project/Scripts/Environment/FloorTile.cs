@@ -17,6 +17,10 @@ namespace CleaningBot.Environment
         [SerializeField] private ParticleSystem _crackEffectPrefab;
         [SerializeField] private ParticleSystem _collapseEffectPrefab;
 
+        [Header("Audio")]
+        [SerializeField] private AudioClip _crackSound;
+        [SerializeField] private AudioClip _collapseSound;
+
         // MaterialPropertyBlock を使いマテリアルインスタンス化を防ぐ
         private static readonly int BaseColorID = Shader.PropertyToID("_BaseColor");
 
@@ -85,9 +89,19 @@ namespace CleaningBot.Environment
             ApplyColor(color);
         }
 
-        protected virtual void OnCracked()   => ParticlePlayer.PlayAt(_crackEffectPrefab, transform.position);
+        protected virtual void OnCracked()
+        {
+            ParticlePlayer.PlayAt(_crackEffectPrefab, transform.position);
+            if (_crackSound != null)
+                AudioSource.PlayClipAtPoint(_crackSound, transform.position);
+        }
 
-        protected virtual void OnCollapsed() => ParticlePlayer.PlayAt(_collapseEffectPrefab, transform.position);
+        protected virtual void OnCollapsed()
+        {
+            ParticlePlayer.PlayAt(_collapseEffectPrefab, transform.position);
+            if (_collapseSound != null)
+                AudioSource.PlayClipAtPoint(_collapseSound, transform.position);
+        }
 
         private void ApplyColor(Color color)
         {
