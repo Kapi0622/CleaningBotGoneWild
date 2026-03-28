@@ -128,3 +128,5 @@ MonoBehaviour:
   _maxHp: 2
   _crackEffectPrefab: {fileID: 4271093393614929224, guid: 87ee7299dd44ed747af24dbb91bcd33b, type: 3}
   _collapseEffectPrefab: {fileID: 4021103657954561960, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
+  _crackSound: {fileID: 8300000, guid: d0fe0ed464d96684cbe33a70484dc885, type: 3}
+  _collapseSound: {fileID: 8300000, guid: c559303a9b6fa3b4eafa9a3da2c57a6a, type: 3}

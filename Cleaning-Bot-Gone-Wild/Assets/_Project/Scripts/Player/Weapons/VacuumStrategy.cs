@@ -30,6 +30,7 @@ namespace CleaningBot.Player.Weapons
         private readonly CinemachineImpulseSource _impulseSource;
 
         private GameObject _activeEffect;
+        private bool _fireSoundActive;
 
         public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource)
         {
@@ -55,6 +56,12 @@ namespace CleaningBot.Player.Weapons
         {
             if (_activeEffect) UnityEngine.Object.Destroy(_activeEffect);
             _activeEffect = null;
+            if (_fireSoundActive)
+            {
+                _audioSource.loop = false;
+                _audioSource.Stop();
+                _fireSoundActive = false;
+            }
         }
 
         public bool CanExecute() => true;
@@ -117,9 +124,12 @@ namespace CleaningBot.Player.Weapons
                     reactor.TriggerAngry();
             }
 
-            if (_data.fireSound != null)
+            if (!_fireSoundActive && _data.fireSound != null)
             {
-                _audioSource.PlayOneShot(_data.fireSound);
+                _audioSource.clip = _data.fireSound;
+                _audioSource.loop = true;
+                _audioSource.Play();
+                _fireSoundActive = true;
             }
         }
     }

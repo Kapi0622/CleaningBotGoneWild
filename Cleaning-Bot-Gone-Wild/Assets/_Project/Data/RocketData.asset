@@ -16,7 +16,8 @@ MonoBehaviour:
   cooldown: 3
   floorDamage: 1
   blastRadius: 5
-  fireSound: {fileID: 0}
+  fireSound: {fileID: 8300000, guid: e538f8038772cb340820d741e574bfa1, type: 3}
+  impactSound: {fileID: 8300000, guid: 75975f75811817746ae343182a1ea48f, type: 3}
   residentHitForce: 8
   throwRange: 0
   impactEffectPrefab: {fileID: 2433282508523890284, guid: 3ef3ae421f71c5c4e97fe12dc2fc6312, type: 3}

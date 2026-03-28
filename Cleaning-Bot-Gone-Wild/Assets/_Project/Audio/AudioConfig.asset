@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75dc3ead796eb0f4aac7d5a5bd3ac977, type: 3}
   m_Name: AudioConfig
   m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Audio.AudioConfig
-  bgmClip: {fileID: 0}
+  bgmClip: {fileID: 8300000, guid: 6d30b389be184f440aa21900f6d592ad, type: 3}
   bgmVolume: 0.7
-  buttonClickSound: {fileID: 0}
+  buttonClickSound: {fileID: 8300000, guid: d62d6d748876f15459b5543310ca2387, type: 3}
