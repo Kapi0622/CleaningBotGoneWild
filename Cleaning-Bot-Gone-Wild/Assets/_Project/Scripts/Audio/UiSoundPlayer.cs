@@ -23,7 +23,7 @@ namespace CleaningBot.Audio
         }
 
         /// <summary>
-        /// 共通SE を再生する。ButtonClickSound からも _overrideClip 未設定時のフォールバックとして呼ばれる。
+        /// 共通SE を再生する。ClickEvent からも _overrideClip 未設定時のフォールバックとして呼ばれる。
         /// </summary>
         public void PlayDefaultSound()
         {
