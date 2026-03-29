@@ -1,3 +1,4 @@
+using System.Threading;
 using CleaningBot.Audio;
 using CleaningBot.Data;
 using CleaningBot.Environment;
@@ -6,6 +7,7 @@ using CleaningBot.Presenter;
 using CleaningBot.Score;
 using CleaningBot.Stage;
 using CleaningBot.View;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CleaningBot.Core
@@ -22,6 +24,7 @@ namespace CleaningBot.Core
         [SerializeField] private FloorGrid _floorGrid;
         [SerializeField] private GameTimer _gameTimer;
         [SerializeField] private GameSceneController _gameSceneController;
+        [SerializeField] private Camera _mainCamera;
 
         [Header("Stage")]
         [SerializeField] private StageData _stageData;
@@ -37,6 +40,11 @@ namespace CleaningBot.Core
         [SerializeField] private WeaponView _weaponView;
         [SerializeField] private GarbageView _garbageView;
         [SerializeField] private ResultView _resultView;
+
+        [Header("UI Animation Views")]
+        [SerializeField] private FloatingScoreView _floatingScoreView;
+        [SerializeField] private ScreenFadeView _screenFadeView;
+        [SerializeField] private CountdownView _countdownView;
 
         private void Awake()
         {
@@ -56,6 +64,10 @@ namespace CleaningBot.Core
             new WeaponPresenter().Initialize(weaponModel, _weaponView);
             new GarbagePresenter().Initialize(garbageModel, _garbageView);
 
+            // 2b. FloatingScorePresenter
+            _floatingScoreView.Initialize(_mainCamera);
+            new FloatingScorePresenter().Initialize(garbageModel, _floatingScoreView, _floatingScoreView);
+
             // 3. GameTimer に TimerModel を注入し、GameStateController を生成
             _gameTimer.Initialize(timerModel);
             var gameStateController = new GameStateController(_gameTimer, timerModel, _playerLocomotion.transform);
@@ -73,7 +85,8 @@ namespace CleaningBot.Core
             var stageResetter = new StageResetter(
                 scoreModel, timerModel, weaponModel, garbageModel,
                 _floorGrid, _stageInitializer, garbageTracker,
-                _playerLocomotion.transform, stageData, gameStateController);
+                _playerLocomotion.transform, stageData, gameStateController,
+                _screenFadeView, _countdownView, _resultView, _timerView, _garbageView);
 
             // 7. ResultPresenter（リトライ購読含む。必ず ChangeState より前に初期化する）
             new ResultPresenter().Initialize(
@@ -83,7 +96,23 @@ namespace CleaningBot.Core
             // 8. BGM 開始
             _bgmPlayer.Initialize(_audioConfig);
 
-            // 9. ゲーム開始（最終行）
+            // 9. フェードイン → カウントダウン → ゲーム開始
+            StartGameAsync(gameStateController, this.GetCancellationTokenOnDestroy()).Forget();
+        }
+
+        private async UniTaskVoid StartGameAsync(GameStateController gameStateController, CancellationToken ct)
+        {
+            _screenFadeView.gameObject.SetActive(true);
+            Time.timeScale = 0f;
+            try
+            {
+                await _screenFadeView.FadeIn(0.5f, ct);
+                await _countdownView.PlayCountdownAsync(ct);
+            }
+            finally
+            {
+                Time.timeScale = 1f;
+            }
             gameStateController.ChangeState(new InGameState());
         }
     }

@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using R3;
 using CleaningBot.Core;
 using CleaningBot.Data;
@@ -42,7 +43,7 @@ namespace CleaningBot.Presenter
                 .AddTo(view);
 
             view.OnRetryClicked
-                .Subscribe(_ => stageResetter.Reset())
+                .Subscribe(_ => stageResetter.Reset().Forget())
                 .AddTo(view);
         }
     }
