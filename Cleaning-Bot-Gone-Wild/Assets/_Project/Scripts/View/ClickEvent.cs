@@ -1,4 +1,6 @@
 using CleaningBot.Audio;
+using LitMotion;
+using LitMotion.Extensions;
 using R3;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,7 +11,8 @@ namespace CleaningBot.View
     /// <summary>
     /// 任意の UI GameObject にアタッチしてクリックを R3 Observable に変換する汎用コンポーネント。
     /// Unity 標準の Button に依存しないため、SE・アニメーション等の拡張が容易。
-    /// Normal/Highlighted/Pressed/Disabled の色遷移は標準 Button と同等。
+    /// Normal/Highlighted/Pressed/Disabled の色遷移は LitMotion ベース。
+    /// ホバーで拡大、クリックでパンチスケール演出付き。
     /// </summary>
     [RequireComponent(typeof(Image))]
     public class ClickEvent : MonoBehaviour,
@@ -34,6 +37,8 @@ namespace CleaningBot.View
 
         private Image _image;
         private UiSoundPlayer _soundPlayer;
+        private MotionHandle _colorHandle;
+        private MotionHandle _hoverHandle;
         private readonly Subject<Unit> _onClick = new();
         public Observable<Unit> OnClicked => _onClick;
 
@@ -61,6 +66,13 @@ namespace CleaningBot.View
                 AudioSource.PlayClipAtPoint(_clickSound, transform.position);
             else
                 _soundPlayer?.PlayDefaultSound();
+
+            // クリックパンチ演出
+            transform.localScale = Vector3.one;
+            LMotion.Punch.Create(Vector3.one, Vector3.one * 0.1f, 0.15f)
+                .BindToLocalScale(transform)
+                .AddTo(this);
+
             _onClick.OnNext(Unit.Default);
         }
 
@@ -68,12 +80,20 @@ namespace CleaningBot.View
         {
             if (!_interactable) return;
             ApplyColor(_highlightColor);
+            if (_hoverHandle.IsActive()) _hoverHandle.Cancel();
+            _hoverHandle = LMotion.Create(transform.localScale, Vector3.one * 1.05f, 0.1f)
+                .WithEase(Ease.OutQuad)
+                .BindToLocalScale(transform);
         }
 
         public void OnPointerExit(PointerEventData _)
         {
             if (!_interactable) return;
             ApplyColor(_normalColor);
+            if (_hoverHandle.IsActive()) _hoverHandle.Cancel();
+            _hoverHandle = LMotion.Create(transform.localScale, Vector3.one, 0.1f)
+                .WithEase(Ease.OutQuad)
+                .BindToLocalScale(transform);
         }
 
         public void OnPointerDown(PointerEventData _)
@@ -91,9 +111,16 @@ namespace CleaningBot.View
         private void ApplyColor(Color target)
         {
             if (_image == null) return;
-            _image.CrossFadeColor(target, _fadeDuration, true, true);
+            if (_colorHandle.IsActive()) _colorHandle.Cancel();
+            _colorHandle = LMotion.Create(_image.color, target, _fadeDuration)
+                .BindToColor(_image);
         }
 
-        private void OnDestroy() => _onClick.Dispose();
+        private void OnDestroy()
+        {
+            _onClick.Dispose();
+            if (_colorHandle.IsActive()) _colorHandle.Cancel();
+            if (_hoverHandle.IsActive()) _hoverHandle.Cancel();
+        }
     }
 }

@@ -17,6 +17,7 @@ namespace CleaningBot.Presenter
                 .AddTo(view);
 
             model.SubScore
+                .Skip(1)
                 .Subscribe(v => view.UpdateSubScore(v))
                 .AddTo(view);
         }
