@@ -70,37 +70,39 @@ namespace CleaningBot.Core
         public async UniTask Reset()
         {
             _cts.Cancel();
+            _cts.Dispose();
             _cts = new CancellationTokenSource();
             var ct = _cts.Token;
 
-            await _screenFadeView.FadeOutIn(0.3f, () =>
-            {
-                // 全 Model リセット
-                _scoreModel.Reset();
-                _timerModel.Reset();
-                _weaponModel.Reset();
-                _garbageModel.Reset();
-                _floorGrid.Reset();
-                _stageInitializer.ReInitialize();
-                _garbageTracker.Initialize();
-                _playerTransform.position = _stageData.playerStartPosition;
-
-                // UI アニメーションリセット
-                _timerView.ResetAnimation();
-                _garbageView.ResetAnimation();
-
-                // 画面が黒い間にリザルトパネルを非表示・世界を停止
-                _resultView.Hide();
-                Time.timeScale = 0f;
-            }, ct);
-
+            var prevTimeScale = Time.timeScale;
             try
             {
+                await _screenFadeView.FadeOutIn(0.3f, () =>
+                {
+                    // 全 Model リセット
+                    _scoreModel.Reset();
+                    _timerModel.Reset();
+                    _weaponModel.Reset();
+                    _garbageModel.Reset();
+                    _floorGrid.Reset();
+                    _stageInitializer.ReInitialize();
+                    _garbageTracker.Initialize();
+                    _playerTransform.position = _stageData.playerStartPosition;
+
+                    // UI アニメーションリセット
+                    _timerView.ResetAnimation();
+                    _garbageView.ResetAnimation();
+
+                    // 画面が黒い間にリザルトパネルを非表示・世界を停止
+                    _resultView.Hide();
+                    Time.timeScale = 0f;
+                }, ct);
+
                 await _countdownView.PlayCountdownAsync(ct);
             }
             finally
             {
-                Time.timeScale = 1f;
+                Time.timeScale = prevTimeScale;
             }
             _gameStateController.ChangeState(new InGameState());
         }

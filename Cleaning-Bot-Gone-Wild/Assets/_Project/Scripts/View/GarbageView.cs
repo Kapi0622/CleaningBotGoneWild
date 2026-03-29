@@ -59,6 +59,7 @@ namespace CleaningBot.View
                 _garbageCountText.color = Color.yellow;
 
                 _burstCts?.Cancel();
+                _burstCts?.Dispose();
                 _burstCts = new CancellationTokenSource();
                 PlayBurstAsync(_burstCts.Token).Forget();
             }
@@ -72,6 +73,7 @@ namespace CleaningBot.View
             _isBlinking = false;
 
             _burstCts?.Cancel();
+            _burstCts?.Dispose();
             _burstCts = null;
 
             _garbageCountText.color = _defaultColor;
@@ -101,6 +103,7 @@ namespace CleaningBot.View
         {
             if (_blinkHandle.IsActive()) _blinkHandle.Cancel();
             _burstCts?.Cancel();
+            _burstCts?.Dispose();
         }
     }
 }

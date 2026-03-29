@@ -22,6 +22,7 @@ namespace CleaningBot.View
 
         private AudioSource _audioSource;
         private RectTransform _timerRect;
+        private Vector2 _defaultAnchoredPos;
         private Color _defaultColor;
         private MotionHandle _pulseTween;
         private MotionHandle _shakeTween;
@@ -36,6 +37,7 @@ namespace CleaningBot.View
         {
             _audioSource = GetComponent<AudioSource>();
             _timerRect = _timerText.GetComponent<RectTransform>();
+            _defaultAnchoredPos = _timerRect.anchoredPosition;
             _defaultColor = _timerText.color;
         }
 
@@ -111,7 +113,7 @@ namespace CleaningBot.View
 
             _timerText.color = _defaultColor;
             _timerText.transform.localScale = Vector3.one;
-            _timerRect.anchoredPosition = Vector2.zero;
+            _timerRect.anchoredPosition = _defaultAnchoredPos;
         }
 
         private void OnDestroy()

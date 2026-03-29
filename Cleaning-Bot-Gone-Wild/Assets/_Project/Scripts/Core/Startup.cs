@@ -109,6 +109,15 @@ namespace CleaningBot.Core
                 await _screenFadeView.FadeIn(0.5f, ct);
                 await _countdownView.PlayCountdownAsync(ct);
             }
+            catch (System.OperationCanceledException)
+            {
+                return;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+                return;
+            }
             finally
             {
                 Time.timeScale = 1f;

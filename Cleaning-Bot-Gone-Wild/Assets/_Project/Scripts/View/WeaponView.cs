@@ -44,6 +44,7 @@ namespace CleaningBot.View
             _currentType = type;
 
             _spinCts?.Cancel();
+            _spinCts?.Dispose();
             _spinCts = new CancellationTokenSource();
             PlaySpinAsync(weaponName, _spinCts.Token).Forget();
         }
@@ -76,6 +77,7 @@ namespace CleaningBot.View
         private void OnDestroy()
         {
             _spinCts?.Cancel();
+            _spinCts?.Dispose();
         }
     }
 }

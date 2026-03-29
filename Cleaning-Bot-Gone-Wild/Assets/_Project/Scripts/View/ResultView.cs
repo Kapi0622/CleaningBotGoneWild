@@ -121,6 +121,7 @@ namespace CleaningBot.View
         private void KillCurrent()
         {
             _cts?.Cancel();
+            _cts?.Dispose();
             _cts = new CancellationTokenSource();
             if (_pulseHandle.IsActive()) _pulseHandle.Cancel();
             _pulseHandle = default;
@@ -235,6 +236,7 @@ namespace CleaningBot.View
         private void OnDestroy()
         {
             _cts?.Cancel();
+            _cts?.Dispose();
             if (_pulseHandle.IsActive()) _pulseHandle.Cancel();
         }
     }

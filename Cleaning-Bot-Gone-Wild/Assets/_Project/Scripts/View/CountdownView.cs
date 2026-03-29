@@ -30,6 +30,7 @@ namespace CleaningBot.View
         public UniTask PlayCountdownAsync(CancellationToken ct = default)
         {
             _cts?.Cancel();
+            _cts?.Dispose();
             _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             return RunCountdownAsync(_cts.Token);
         }
@@ -78,6 +79,7 @@ namespace CleaningBot.View
         public void Cancel()
         {
             _cts?.Cancel();
+            _cts?.Dispose();
             _cts = null;
             _canvasGroup.alpha = 0f;
         }
@@ -85,6 +87,7 @@ namespace CleaningBot.View
         private void OnDestroy()
         {
             _cts?.Cancel();
+            _cts?.Dispose();
         }
     }
 }
