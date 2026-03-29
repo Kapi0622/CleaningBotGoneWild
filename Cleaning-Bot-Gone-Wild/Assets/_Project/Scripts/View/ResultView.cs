@@ -27,12 +27,13 @@ namespace CleaningBot.View
         [SerializeField] private TMP_Text _clearMainScoreText;
         [SerializeField] private TMP_Text _clearRankText;
         [SerializeField] private TMP_Text _clearElapsedTimeText;
+        [SerializeField] private TMP_Text _clearSubScoreText;
 
         [Header("Fail Panel")]
         [SerializeField] private RectTransform _failPanelRect;
         [SerializeField] private CanvasGroup _failCanvasGroup;
         [SerializeField] private TMP_Text _failMainScoreText;
-        [SerializeField] private TMP_Text _failRankText;
+        [SerializeField] private TMP_Text _failSubScoreText;
         [SerializeField] private Image _failOverlay; // 半透明黒オーバーレイ
 
         [Header("Retry Buttons")]
@@ -76,6 +77,12 @@ namespace CleaningBot.View
             _clearRankText.text = "";
             _clearRankText.transform.localScale = Vector3.one;
 
+            if (_clearSubScoreText != null)
+            {
+                _clearSubScoreText.text = "被害総額: 0円";
+                _clearSubScoreText.transform.localScale = Vector3.zero;
+            }
+
             if (_clearRetryGroup != null)
                 _clearRetryGroup.alpha = 0f;
 
@@ -95,7 +102,11 @@ namespace CleaningBot.View
             _clearPanel.SetActive(false);
 
             _failMainScoreText.text = $"スコア: {data.MainScore}";
-            _failRankText.text      = $"{new string('\u2605', data.StarRank)}{new string('\u2606', 3 - data.StarRank)}";
+            if (_failSubScoreText != null)
+            {
+                _failSubScoreText.text = "被害総額: 0円";
+                _failSubScoreText.transform.localScale = Vector3.zero;
+            }
 
             if (_failCanvasGroup != null)
                 _failCanvasGroup.alpha = 0f;
@@ -158,6 +169,19 @@ namespace CleaningBot.View
                 .Bind(x => _clearMainScoreText.text = $"スコア: {x}")
                 .ToUniTask(ct);
 
+            // (3b) 被害総額ポップアップ → カウントアップ
+            if (_clearSubScoreText != null)
+            {
+                await LMotion.Create(Vector3.zero, Vector3.one, 0.3f)
+                    .WithEase(Ease.OutBack)
+                    .BindToLocalScale(_clearSubScoreText.transform)
+                    .ToUniTask(ct);
+                await LMotion.Create(0, data.SubScore, 0.8f)
+                    .WithEase(Ease.OutQuad)
+                    .Bind(x => _clearSubScoreText.text = $"被害総額: {x}円")
+                    .ToUniTask(ct);
+            }
+
             // (4) 星パラパラ表示
             _clearRankText.text = "";
             for (var i = 0; i < data.StarRank; i++)
@@ -216,7 +240,20 @@ namespace CleaningBot.View
                     .ToUniTask(ct);
             }
 
-            // (3) リトライボタン遅延表示
+            // (3) 被害総額ポップアップ → カウントアップ
+            if (_failSubScoreText != null)
+            {
+                await LMotion.Create(Vector3.zero, Vector3.one, 0.3f)
+                    .WithEase(Ease.OutBack)
+                    .BindToLocalScale(_failSubScoreText.transform)
+                    .ToUniTask(ct);
+                await LMotion.Create(0, data.SubScore, 0.8f)
+                    .WithEase(Ease.OutQuad)
+                    .Bind(x => _failSubScoreText.text = $"被害総額: {x}円")
+                    .ToUniTask(ct);
+            }
+
+            // (4) リトライボタン遅延表示
             if (_failRetryGroup != null)
             {
                 await UniTask.Delay(500, cancellationToken: ct);

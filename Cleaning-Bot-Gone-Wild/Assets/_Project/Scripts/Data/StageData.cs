@@ -33,6 +33,7 @@ namespace CleaningBot.Data
         [Header("スコア設定")]
         public int scoreStar2Threshold = 500;
         public int scoreStar3Threshold = 1000;
+        public float timeBonusMaxMultiplier = 2.0f;
     }
 
     [Serializable]

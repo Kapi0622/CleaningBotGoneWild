@@ -1,3 +1,4 @@
+using System;
 using CleaningBot.Effects;
 using UnityEngine;
 
@@ -23,6 +24,9 @@ namespace CleaningBot.Environment
 
         // MaterialPropertyBlock を使いマテリアルインスタンス化を防ぐ
         private static readonly int BaseColorID = Shader.PropertyToID("_BaseColor");
+
+        /// <summary>タイルが Collapsed 状態に遷移したとき発火する。FloorGrid が購読して SubScore を加算する。</summary>
+        public event Action OnCollapsedEvent;
 
         private int _currentHp;
         private TileState _state = TileState.Normal;
@@ -77,7 +81,7 @@ namespace CleaningBot.Environment
             _collider.enabled = (next != TileState.Collapsed);
 
             if (next == TileState.Cracked)   OnCracked();
-            if (next == TileState.Collapsed) OnCollapsed();
+            if (next == TileState.Collapsed) { OnCollapsed(); OnCollapsedEvent?.Invoke(); }
 
             // プロトタイプ用の色フィードバック（STEP 12 でテクスチャ/エフェクトに置き換え）
             Color color = next switch

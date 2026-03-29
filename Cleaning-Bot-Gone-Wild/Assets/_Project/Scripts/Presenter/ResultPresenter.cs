@@ -23,6 +23,7 @@ namespace CleaningBot.Presenter
             GarbageModel garbageModel,
             TimerModel timerModel,
             RankCalculator rankCalc,
+            TimeBonusCalculator timeBonusCalc,
             StageData stageData,
             StageResetter stageResetter,
             ResultView view)
@@ -32,12 +33,17 @@ namespace CleaningBot.Presenter
                 {
                     if (state is InGameState) { view.Hide(); return; }
 
+                    var isCleared = state is ClearState;
+                    var finalScore = isCleared
+                        ? timeBonusCalc.Calculate(scoreModel.MainScore.Value, timerModel.RemainingTime.Value, stageData.timeLimit, stageData.timeBonusMaxMultiplier)
+                        : scoreModel.MainScore.Value;
+
                     var data = new ResultData(
-                        scoreModel.MainScore.Value,
+                        finalScore,
                         scoreModel.SubScore.Value,
                         garbageModel.RemainingCount.Value,
                         timerModel.ElapsedTime,
-                        rankCalc.Calculate(scoreModel.MainScore.Value, stageData));
+                        rankCalc.Calculate(finalScore, stageData, isCleared));
 
                     if (state is ClearState) view.ShowClear(data);
                     else if (state is FailState) view.ShowFail(data);

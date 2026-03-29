@@ -78,6 +78,9 @@ namespace CleaningBot.Core
             var garbageTracker = new GarbageTracker(garbageModel, scoreModel, gameStateController);
             garbageTracker.Initialize();
 
+            // 4b. FloorGrid に ScoreModel を登録（床崩壊時の被害総額加算）
+            _floorGrid.RegisterScoreModel(scoreModel);
+
             // 5. WeaponController（WeaponModel 注入）
             _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, stageData.weaponDataList);
 
@@ -91,7 +94,8 @@ namespace CleaningBot.Core
             // 7. ResultPresenter（リトライ購読含む。必ず ChangeState より前に初期化する）
             new ResultPresenter().Initialize(
                 gameStateController, scoreModel, garbageModel,
-                timerModel, new RankCalculator(), stageData, stageResetter, _resultView);
+                timerModel, new RankCalculator(), new TimeBonusCalculator(),
+                stageData, stageResetter, _resultView);
 
             // 8. BGM 開始
             _bgmPlayer.Initialize(_audioConfig);
