@@ -7,6 +7,7 @@ using CleaningBot.Score;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cysharp.Threading.Tasks;
 
 namespace CleaningBot.Player
 {
@@ -108,9 +109,10 @@ namespace CleaningBot.Player
 
             _weaponModel = weaponModel;
             _locomotion = locomotion;
+            var persistentCt = this.GetCancellationTokenOnDestroy();
             _factory = new WeaponStrategyFactory(
                 weaponDataList, floorGrid, transform, _audioSource,
-                () => _locomotion.FacingDirection, _impulseSource);
+                () => _locomotion.FacingDirection, _impulseSource, persistentCt);
             SwitchWeapon(WeaponType.Vacuum);
         }
 

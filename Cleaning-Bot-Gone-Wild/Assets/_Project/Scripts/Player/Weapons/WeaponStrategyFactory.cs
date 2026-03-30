@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using Unity.Cinemachine;
@@ -22,7 +23,8 @@ namespace CleaningBot.Player.Weapons
             Transform origin,
             AudioSource audioSource,
             Func<Vector3> getFacingDirection,
-            CinemachineImpulseSource impulseSource)
+            CinemachineImpulseSource impulseSource,
+            CancellationToken persistentCt)
         {
             _strategies = new Dictionary<WeaponType, IWeaponStrategy>
             {
@@ -32,12 +34,12 @@ namespace CleaningBot.Player.Weapons
                 },
                 {
                     WeaponType.Rocket,
-                    new RocketStrategy(GetData(dataList, WeaponType.Rocket), floorGrid, origin, audioSource, impulseSource)
+                    new RocketStrategy(GetData(dataList, WeaponType.Rocket), floorGrid, origin, audioSource, impulseSource, persistentCt)
                 },
                 {
                     WeaponType.BlackHole,
                     new BlackHoleStrategy(
-                        GetData(dataList, WeaponType.BlackHole), floorGrid, origin, audioSource, getFacingDirection, impulseSource)
+                        GetData(dataList, WeaponType.BlackHole), floorGrid, origin, audioSource, getFacingDirection, impulseSource, persistentCt)
                 },
             };
         }

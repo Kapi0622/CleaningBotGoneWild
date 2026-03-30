@@ -73,8 +73,7 @@ namespace CleaningBot.View
             _clearMainScoreText.text   = "スコア: 0";
             _clearRankText.text        = "";
             _clearElapsedTimeText.text = $"タイム: {FormatTime(data.ElapsedTime)}";
-
-            _clearRankText.text = "";
+            
             _clearRankText.transform.localScale = Vector3.one;
 
             if (_clearSubScoreText != null)

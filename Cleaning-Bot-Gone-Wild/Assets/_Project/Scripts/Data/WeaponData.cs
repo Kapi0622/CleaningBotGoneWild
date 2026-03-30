@@ -17,10 +17,14 @@ namespace CleaningBot.Data
         public float residentHitForce = 8f; // 住人に加える吹き飛び力（Impulse）
         public float throwRange;             // 投擲水平距離（m）。BlackHole のみ使用
 
+        [Header("Projectile")]
+        public float projectileSpeed = 8f;          // ロケット弾の飛翔速度 (m/s)。値が小さいほど弾道が見やすい
+
         [Header("Effects")]
         public ParticleSystem impactEffectPrefab;   // Rocket: 爆発(one-shot) / BlackHole: 渦(loop) / Vacuum: 吸引コーン(loop)
         public GameObject     indicatorPrefab;      // BlackHole 着地予測マーカー Prefab（未設定時は CreatePrimitive にフォールバック）
         public Material       trajectoryLineMaterial; // BlackHole 軌道ライン用マテリアル（未設定時はデフォルト）
+        public GameObject     rangeIndicatorPrefab; // Vacuum 射程・範囲可視化 Prefab（未設定時は CreatePrimitive にフォールバック）
 
         [Header("Camera")]
         public float shakeIntensity; // スクリーンシェイク強度。Vacuum=0, Rocket=0.3, BlackHole=0.8
