@@ -40,3 +40,4 @@ MonoBehaviour:
   - {x: 9, y: 1, z: 9}
   scoreStar2Threshold: 500
   scoreStar3Threshold: 1000
+  timeBonusMaxMultiplier: 2

@@ -1,3 +1,4 @@
+using CleaningBot.Score;
 using UnityEngine;
 
 namespace CleaningBot.Environment
@@ -12,12 +13,13 @@ namespace CleaningBot.Environment
         [SerializeField] private int _gridWidth = 10;
         [SerializeField] private int _gridDepth = 10;
         [SerializeField] private float _cellSize = 2f;
+        [SerializeField] private int _tilePenalty = 100;
 
         private FloorTile[,] _tiles;
 
         private void Awake()
         {
-            GenerateGrid();
+            if (_tiles == null) GenerateGrid();
         }
 
         private void GenerateGrid()
@@ -64,6 +66,19 @@ namespace CleaningBot.Environment
                         _tiles[x, z].TakeDamage(damageAmount);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Startup.csから呼ばれる。床崩壊時に SubScore を加算するため ScoreModel を登録する。
+        /// </summary>
+        public void RegisterScoreModel(ScoreModel scoreModel)
+        {
+            if (_tiles == null) GenerateGrid();
+            foreach (var tile in _tiles)
+            {
+                var t = tile;
+                t.OnCollapsedEvent += () => scoreModel.AddSubScore(_tilePenalty);
             }
         }
 
