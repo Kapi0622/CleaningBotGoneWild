@@ -15,12 +15,14 @@ MonoBehaviour:
   weaponType: 0
   cooldown: 0
   floorDamage: 0
-  blastRadius: 0
+  blastRadius: 3
   fireSound: {fileID: 8300000, guid: 8fb1c0bd73b9eef4491f2d1cbce96a7e, type: 3}
   impactSound: {fileID: 0}
   residentHitForce: 0
   throwRange: 0
+  projectileSpeed: 8
   impactEffectPrefab: {fileID: 8656522925583198860, guid: 73ac7c73115353e479921376f3177f5d, type: 3}
   indicatorPrefab: {fileID: 0}
   trajectoryLineMaterial: {fileID: 0}
+  rangeIndicatorPrefab: {fileID: 8527272198423268203, guid: 004919df995401d439c4c682dccbe318, type: 3}
   shakeIntensity: 0

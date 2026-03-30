@@ -14,11 +14,10 @@ namespace CleaningBot.View
     public class FloatingScoreView : MonoBehaviour
     {
         [SerializeField] private GameObject _floatingTextPrefab;
-        [SerializeField] private Transform _poolRoot;
         [SerializeField] private int _initialPoolSize = 5;
 
         private Camera _camera;
-        private RectTransform _canvasRect; // FloatingScorePool 自身の RectTransform（子の anchoredPosition 基準）
+        private RectTransform _canvasRect;
         private readonly Queue<GameObject> _pool = new();
         private readonly Dictionary<GameObject, MotionHandle> _activeHandles = new();
 
@@ -91,7 +90,6 @@ namespace CleaningBot.View
 
         private GameObject CreateInstance()
         {
-            // Canvas（RectTransform）を親にする。_poolRootはTransformのためUI座標系と合わない
             var parent = _canvasRect != null ? _canvasRect.transform : transform;
             var go = Instantiate(_floatingTextPrefab, parent);
             if (go.GetComponent<CanvasGroup>() == null)

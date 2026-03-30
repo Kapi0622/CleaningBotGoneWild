@@ -20,7 +20,9 @@ MonoBehaviour:
   impactSound: {fileID: 8300000, guid: 75975f75811817746ae343182a1ea48f, type: 3}
   residentHitForce: 8
   throwRange: 0
+  projectileSpeed: 16
   impactEffectPrefab: {fileID: 2433282508523890284, guid: 3ef3ae421f71c5c4e97fe12dc2fc6312, type: 3}
   indicatorPrefab: {fileID: 0}
   trajectoryLineMaterial: {fileID: 0}
+  rangeIndicatorPrefab: {fileID: 0}
   shakeIntensity: 0.3

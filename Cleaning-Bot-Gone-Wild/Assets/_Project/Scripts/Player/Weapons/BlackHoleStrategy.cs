@@ -37,6 +37,7 @@ namespace CleaningBot.Player.Weapons
         private readonly AudioSource               _audioSource;
         private readonly Func<Vector3>             _getFacingDirection;
         private readonly CinemachineImpulseSource  _impulseSource;
+        private readonly CancellationToken         _persistentCt;
 
         // キャッシュ: 毎回 new Vector3[] を回避
         private readonly Vector3[] _arcPoints = new Vector3[ArcResolution];
@@ -56,7 +57,8 @@ namespace CleaningBot.Player.Weapons
             Transform origin,
             AudioSource audioSource,
             Func<Vector3> getFacingDirection,
-            CinemachineImpulseSource impulseSource)
+            CinemachineImpulseSource impulseSource,
+            CancellationToken persistentCt)
         {
             _data               = data;
             _floorGrid          = floorGrid;
@@ -64,6 +66,7 @@ namespace CleaningBot.Player.Weapons
             _audioSource        = audioSource;
             _getFacingDirection = getFacingDirection ?? throw new ArgumentNullException(nameof(getFacingDirection));
             _impulseSource      = impulseSource;
+            _persistentCt       = persistentCt;
         }
 
         public void OnEquip()
@@ -106,7 +109,8 @@ namespace CleaningBot.Player.Weapons
         {
             if (ct.IsCancellationRequested) return;
             _lastFireTime = Time.time;
-            BlackHoleAsync(direction, ct).Forget();
+            // 意図的に _persistentCt を使用: 武器切り替え後もブラックホールが継続して吸引・ダメージを与える仕様
+            BlackHoleAsync(direction, _persistentCt).Forget();
         }
 
         /// <summary>現在の向きと位置から着地予測点を返す。BlackHoleLandingIndicator に渡すデリゲート。</summary>
@@ -170,6 +174,7 @@ namespace CleaningBot.Player.Weapons
 
                 // ---- Phase 2: 着弾 — ライン非表示、ブラックホール拡大、ボルテックスエフェクト ----
                 lr.enabled = false;
+                if (_indicator) { UnityEngine.Object.Destroy(_indicator); _indicator = null; }
                 projectile.transform.position   = landingPoint;
                 projectile.transform.localScale = Vector3.one * 1.5f;
                 _activeVortex = ParticlePlayer.PlayLoopAt(_data.impactEffectPrefab, landingPoint);

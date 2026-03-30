@@ -1,6 +1,7 @@
 using System.Threading;
 using CleaningBot.Data;
 using CleaningBot.Environment;
+using CleaningBot.Player;
 using CleaningBot.Score;
 using CleaningBot.Stage;
 using CleaningBot.View;
@@ -25,6 +26,7 @@ namespace CleaningBot.Core
         private readonly Transform           _playerTransform;
         private readonly StageData           _stageData;
         private readonly GameStateController _gameStateController;
+        private readonly WeaponController    _weaponController;
         private readonly ScreenFadeView      _screenFadeView;
         private readonly CountdownView       _countdownView;
         private readonly ResultView          _resultView;
@@ -44,6 +46,7 @@ namespace CleaningBot.Core
             Transform           playerTransform,
             StageData           stageData,
             GameStateController gameStateController,
+            WeaponController    weaponController,
             ScreenFadeView      screenFadeView,
             CountdownView       countdownView,
             ResultView          resultView,
@@ -60,6 +63,7 @@ namespace CleaningBot.Core
             _playerTransform     = playerTransform;
             _stageData           = stageData;
             _gameStateController = gameStateController;
+            _weaponController    = weaponController;
             _screenFadeView      = screenFadeView;
             _countdownView       = countdownView;
             _resultView          = resultView;
@@ -88,6 +92,8 @@ namespace CleaningBot.Core
                     _stageInitializer.ReInitialize();
                     _garbageTracker.Initialize();
                     _playerTransform.position = _stageData.playerStartPosition;
+                    // 飛行中ロケット・発動中ブラックホールを即時キャンセルし武器を初期化
+                    _weaponController.ResetEffects();
 
                     // UI アニメーションリセット
                     _timerView.ResetAnimation();

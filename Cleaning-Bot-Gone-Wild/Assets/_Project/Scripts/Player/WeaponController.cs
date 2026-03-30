@@ -7,6 +7,8 @@ using CleaningBot.Score;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cysharp.Threading.Tasks;
+
 
 namespace CleaningBot.Player
 {
@@ -40,7 +42,10 @@ namespace CleaningBot.Player
         private WeaponStrategyFactory _factory;
         private PlayerLocomotion _locomotion;
         private WeaponModel _weaponModel;
+        private IReadOnlyList<WeaponData> _weaponDataList;
+        private FloorGrid _floorGrid;
         private CancellationTokenSource _cts = new CancellationTokenSource();
+        private CancellationTokenSource _persistentCts;
 
         private void Awake()
         {
@@ -106,11 +111,29 @@ namespace CleaningBot.Player
             if (_impulseSource == null)
                 _impulseSource = GetComponent<CinemachineImpulseSource>();
 
-            _weaponModel = weaponModel;
-            _locomotion = locomotion;
+            _weaponModel    = weaponModel;
+            _locomotion     = locomotion;
+            _weaponDataList = weaponDataList;
+            _floorGrid      = floorGrid;
+            _persistentCts  = new CancellationTokenSource();
             _factory = new WeaponStrategyFactory(
                 weaponDataList, floorGrid, transform, _audioSource,
-                () => _locomotion.FacingDirection, _impulseSource);
+                () => _locomotion.FacingDirection, _impulseSource, _persistentCts.Token);
+            SwitchWeapon(WeaponType.Vacuum);
+        }
+
+        /// <summary>
+        /// リトライ時に呼ぶ。飛行中のロケット・発動中のブラックホールをキャンセルし、
+        /// 永続トークンと Factory を再生成して武器を初期状態（Vacuum）に戻す。
+        /// </summary>
+        public void ResetEffects()
+        {
+            _persistentCts.Cancel();
+            _persistentCts.Dispose();
+            _persistentCts = new CancellationTokenSource();
+            _factory = new WeaponStrategyFactory(
+                _weaponDataList, _floorGrid, transform, _audioSource,
+                () => _locomotion.FacingDirection, _impulseSource, _persistentCts.Token);
             SwitchWeapon(WeaponType.Vacuum);
         }
 
@@ -147,6 +170,8 @@ namespace CleaningBot.Player
         {
             _cts.Cancel();
             _cts.Dispose();
+            _persistentCts?.Cancel();
+            _persistentCts?.Dispose();
             _useAction.Dispose();
             _switchVacuum.Dispose();
             _switchRocket.Dispose();

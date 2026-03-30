@@ -76,10 +76,7 @@ namespace CleaningBot.Environment
         {
             if (_tiles == null) GenerateGrid();
             foreach (var tile in _tiles)
-            {
-                var t = tile;
-                t.OnCollapsedEvent += () => scoreModel.AddSubScore(_tilePenalty);
-            }
+                tile.OnCollapsedEvent += () => scoreModel.AddSubScore(_tilePenalty);
         }
 
         /// <summary>

@@ -14,7 +14,6 @@ namespace CleaningBot.Player.Weapons
     /// </summary>
     public class VacuumStrategy : IWeaponStrategy
     {
-        private const float Range = 3f;
         // 前方 90° の半球コーン（cos90° = 0）。背後のゴミは除去しない
         private const float HalfConeCos = 0f;
         private static readonly int GarbageLayer  = LayerMask.GetMask("Garbage");
@@ -30,6 +29,7 @@ namespace CleaningBot.Player.Weapons
         private readonly CinemachineImpulseSource _impulseSource;
 
         private GameObject _activeEffect;
+        private GameObject _indicator;
         private bool _fireSoundActive;
 
         public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource)
@@ -40,10 +40,37 @@ namespace CleaningBot.Player.Weapons
             _impulseSource = impulseSource;
         }
 
-        public void OnEquip() { }
+        public void OnEquip()
+        {
+            float radius = Mathf.Max(_data.blastRadius, 0.1f);
+            if (_data.rangeIndicatorPrefab != null)
+            {
+                _indicator = UnityEngine.Object.Instantiate(_data.rangeIndicatorPrefab);
+                // Prefab は単位スケール (radius=1) で作成されているため blastRadius に合わせてスケール
+                var s = _indicator.transform.localScale;
+                _indicator.transform.localScale = new Vector3(radius * s.x, s.y, radius * s.z);
+            }
+            else
+            {
+                _indicator = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                _indicator.transform.localScale = new Vector3(radius * 2f, 0.02f, radius * 2f);
+                UnityEngine.Object.Destroy(_indicator.GetComponent<CapsuleCollider>());
+                var rend = _indicator.GetComponent<Renderer>();
+                var mpb  = new MaterialPropertyBlock();
+                rend.GetPropertyBlock(mpb);
+                mpb.SetColor("_BaseColor", new Color(0.3f, 0.8f, 1f, 0.3f));
+                rend.SetPropertyBlock(mpb);
+            }
+            _indicator.name = "VacuumRangeIndicator";
+            _indicator.transform.SetParent(_origin);
+            _indicator.transform.localPosition = new Vector3(0f, 0.01f, 0f);
+            _indicator.transform.localRotation = Quaternion.identity;
+        }
 
         public void OnUnequip()
         {
+            if (_indicator) UnityEngine.Object.Destroy(_indicator);
+            _indicator = null;
             StopEffect();
         }
 
@@ -102,7 +129,7 @@ namespace CleaningBot.Player.Weapons
                 _activeEffect.transform.SetPositionAndRotation(_origin.position, effectRotation);
             }
 
-            var garbageHits = OverlapSphereWithFallback(_origin.position, Range, _garbageBuffer, GarbageLayer, out int garbageCount);
+            var garbageHits = OverlapSphereWithFallback(_origin.position, _data.blastRadius, _garbageBuffer, GarbageLayer, out int garbageCount);
             for (int i = 0; i < garbageCount; i++)
             {
                 var toTarget = (garbageHits[i].transform.position - _origin.position).normalized;
@@ -115,7 +142,7 @@ namespace CleaningBot.Player.Weapons
             }
 
             // 同じ前方コーン内にいる住人に怒り状態をトリガーする
-            var residentHits = OverlapSphereWithFallback(_origin.position, Range, _residentBuffer, ResidentLayer, out int residentCount);
+            var residentHits = OverlapSphereWithFallback(_origin.position, _data.blastRadius, _residentBuffer, ResidentLayer, out int residentCount);
             for (int i = 0; i < residentCount; i++)
             {
                 var toTarget = (residentHits[i].transform.position - _origin.position).normalized;
