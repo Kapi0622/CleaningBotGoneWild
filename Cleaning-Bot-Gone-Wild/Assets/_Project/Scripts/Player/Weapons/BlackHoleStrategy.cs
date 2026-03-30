@@ -109,6 +109,7 @@ namespace CleaningBot.Player.Weapons
         {
             if (ct.IsCancellationRequested) return;
             _lastFireTime = Time.time;
+            // 意図的に _persistentCt を使用: 武器切り替え後もブラックホールが継続して吸引・ダメージを与える仕様
             BlackHoleAsync(direction, _persistentCt).Forget();
         }
 

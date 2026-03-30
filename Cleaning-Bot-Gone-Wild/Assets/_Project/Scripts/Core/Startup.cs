@@ -89,6 +89,7 @@ namespace CleaningBot.Core
                 scoreModel, timerModel, weaponModel, garbageModel,
                 _floorGrid, _stageInitializer, garbageTracker,
                 _playerLocomotion.transform, stageData, gameStateController,
+                _weaponController,
                 _screenFadeView, _countdownView, _resultView, _timerView, _garbageView);
 
             // 7. ResultPresenter（リトライ購読含む。必ず ChangeState より前に初期化する）

@@ -11,15 +11,14 @@ namespace CleaningBot.Audio
     {
         private AudioSource _audioSource;
 
-        private void Awake()
-        {
-            _audioSource = GetComponent<AudioSource>();
-            _audioSource.loop = true;
-            _audioSource.playOnAwake = false;
-        }
-
         public void Initialize(AudioConfig config)
         {
+            if (_audioSource == null)
+            {
+                _audioSource = GetComponent<AudioSource>();
+                _audioSource.loop = true;
+                _audioSource.playOnAwake = false;
+            }
             if (config == null || config.bgmClip == null) return;
             _audioSource.clip = config.bgmClip;
             _audioSource.volume = config.bgmVolume;

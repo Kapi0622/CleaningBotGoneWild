@@ -58,6 +58,7 @@ namespace CleaningBot.Player.Weapons
         {
             if (ct.IsCancellationRequested) return;
             _lastFireTime = Time.time;
+            // 意図的に _persistentCt を使用: 武器切り替え後も弾が飛び続け着弾・爆発する仕様
             FireAsync(direction, _persistentCt).Forget();
         }
 

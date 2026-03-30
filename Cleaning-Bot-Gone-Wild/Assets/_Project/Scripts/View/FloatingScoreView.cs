@@ -90,7 +90,8 @@ namespace CleaningBot.View
 
         private GameObject CreateInstance()
         {
-            var go = Instantiate(_floatingTextPrefab, _canvasRect.transform);
+            var parent = _canvasRect != null ? _canvasRect.transform : transform;
+            var go = Instantiate(_floatingTextPrefab, parent);
             if (go.GetComponent<CanvasGroup>() == null)
                 go.AddComponent<CanvasGroup>();
             go.SetActive(false);
