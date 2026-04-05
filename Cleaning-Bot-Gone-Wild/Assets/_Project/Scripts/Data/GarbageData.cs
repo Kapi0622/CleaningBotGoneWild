@@ -10,5 +10,8 @@ namespace CleaningBot.Data
         public GarbageType garbageType;
         public int scoreValue;
         public bool hasPhysicalCollision = true;
+
+        [Header("HP設定")]
+        public int maxHp = 1;
     }
 }

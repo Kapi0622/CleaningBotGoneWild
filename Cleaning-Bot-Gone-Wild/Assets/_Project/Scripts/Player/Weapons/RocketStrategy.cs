@@ -109,7 +109,7 @@ namespace CleaningBot.Player.Weapons
                 for (int i = 0; i < garbageCount; i++)
                 {
                     if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
-                        garbage.Remove();
+                        garbage.TakeDamage(_data.garbageDamage);
                 }
 
                 _floorGrid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);

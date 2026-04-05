@@ -2,6 +2,7 @@ using CleaningBot.Effects;
 using CleaningBot.Data;
 using R3;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CleaningBot.Garbage
 {
@@ -20,9 +21,45 @@ namespace CleaningBot.Garbage
         [Header("Audio")]
         [SerializeField] private AudioClip _removalSound;
 
+        [Header("HP Bar")]
+        [SerializeField] private GameObject _hpBarPrefab;
+
         public readonly Subject<GarbageBase> OnRemoved = new();
 
         private bool _isRemoved;
+        private int _currentHp;
+        private GameObject _hpBarInstance;
+        private Image _hpFillImage;
+
+        protected virtual void Awake()
+        {
+            _currentHp = Data != null ? Data.maxHp : 1;
+
+            if (_hpBarPrefab != null)
+            {
+                _hpBarInstance = Instantiate(_hpBarPrefab, transform);
+                _hpBarInstance.transform.localPosition = new Vector3(0f, 1.5f, 0f);
+                var fill = _hpBarInstance.transform.Find("Fill");
+                if (fill != null) _hpFillImage = fill.GetComponent<Image>();
+                _hpBarInstance.SetActive(false);
+            }
+        }
+
+        public void TakeDamage(int amount)
+        {
+            if (_isRemoved) return;
+            _currentHp -= amount;
+
+            if (_hpBarInstance != null)
+            {
+                _hpBarInstance.SetActive(true);
+                if (_hpFillImage != null)
+                    _hpFillImage.fillAmount = Mathf.Max(_currentHp, 0f) / Data.maxHp;
+            }
+
+            if (_currentHp <= 0)
+                Remove();
+        }
 
         public void Remove()
         {

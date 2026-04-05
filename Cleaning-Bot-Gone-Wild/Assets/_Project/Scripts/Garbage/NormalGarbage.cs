@@ -8,8 +8,9 @@ namespace CleaningBot.Garbage
     /// </summary>
     public class NormalGarbage : GarbageBase
     {
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             if (Data != null && !Data.hasPhysicalCollision)
             {
                 var col = GetComponent<Collider>();

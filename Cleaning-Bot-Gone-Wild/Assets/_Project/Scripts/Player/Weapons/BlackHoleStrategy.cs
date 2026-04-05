@@ -260,7 +260,7 @@ namespace CleaningBot.Player.Weapons
                 float dist = Vector3.Distance(hits[i].transform.position, center);
                 if (dist < removeRadius)
                 {
-                    garbage.Remove();
+                    garbage.TakeDamage(_data.garbageDamage);
                 }
                 else
                 {
@@ -280,7 +280,7 @@ namespace CleaningBot.Player.Weapons
             var garbageHits = OverlapSphereWithFallback(center, _data.blastRadius, _garbageBuffer, GarbageLayer, out int garbageCount);
             for (int i = 0; i < garbageCount; i++)
                 if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
-                    garbage.Remove();
+                    garbage.TakeDamage(_data.garbageDamage);
 
             var residentHits = OverlapSphereWithFallback(center, _data.blastRadius, _residentBuffer, ResidentLayer, out int residentCount);
             for (int i = 0; i < residentCount; i++)
