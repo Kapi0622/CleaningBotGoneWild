@@ -54,7 +54,10 @@ namespace CleaningBot.Garbage
             {
                 _hpBarInstance.SetActive(true);
                 if (_hpFillImage != null)
-                    _hpFillImage.fillAmount = Mathf.Max(_currentHp, 0f) / Data.maxHp;
+                {
+                    float denom = Data != null ? Mathf.Max(Data.maxHp, 1) : 1f;
+                    _hpFillImage.fillAmount = Mathf.Clamp01(Mathf.Max(_currentHp, 0f) / denom);
+                }
             }
 
             if (_currentHp <= 0)

@@ -10,7 +10,9 @@ namespace CleaningBot.Player.Weapons
 {
     /// <summary>
     /// 掃除機ストラテジー。
-    /// クールタイムなし。向いた方向の短射程内にあるゴミを即時吸引・除去する。
+    /// クールタイムなし・副作用ゼロ。向いた方向の射程内にあるゴミに一定間隔（damageInterval）で
+    /// ダメージを与え続ける。HP1のゴミは1回のダメージで除去されるが、
+    /// HP2以上のゴミは複数回ヒットさせる必要がある。
     /// </summary>
     public class VacuumStrategy : IWeaponStrategy
     {
