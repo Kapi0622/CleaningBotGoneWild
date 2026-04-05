@@ -128,3 +128,4 @@ MonoBehaviour:
   <Data>k__BackingField: {fileID: 11400000, guid: 6a57f641ffa7b5f4c8f8059bd31bfaa9, type: 2}
   _removalEffectPrefab: {fileID: 9157105887693468085, guid: c4f829cb7dd4b864caf8832ec5b1ee55, type: 3}
   _removalSound: {fileID: 8300000, guid: cb60f1e2ef4e6574fbe2e20774b731cd, type: 3}
+  _hpBarPrefab: {fileID: 6399849767335768141, guid: 0dd88985fad75814bb79dfe6e6d9ed75, type: 3}

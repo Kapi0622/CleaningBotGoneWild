@@ -779,7 +779,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.View.FloatingScoreView
   _floatingTextPrefab: {fileID: 9204351797563953940, guid: 3aa274478a151b8468aef69080daa6ce, type: 3}
-  _poolRoot: {fileID: 395002187}
   _initialPoolSize: 5
 --- !u!1 &410087039
 GameObject:
@@ -2211,7 +2210,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1003152772
 RectTransform:
   m_ObjectHideFlags: 0

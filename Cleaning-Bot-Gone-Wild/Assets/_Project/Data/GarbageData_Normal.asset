@@ -15,3 +15,4 @@ MonoBehaviour:
   garbageType: 0
   scoreValue: 200
   hasPhysicalCollision: 1
+  maxHp: 3

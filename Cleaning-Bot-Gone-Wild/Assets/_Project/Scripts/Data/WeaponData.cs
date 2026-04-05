@@ -26,6 +26,13 @@ namespace CleaningBot.Data
         public Material       trajectoryLineMaterial; // BlackHole 軌道ライン用マテリアル（未設定時はデフォルト）
         public GameObject     rangeIndicatorPrefab; // Vacuum 射程・範囲可視化 Prefab（未設定時は CreatePrimitive にフォールバック）
 
+        [Header("攻撃力設定")]
+        public int garbageDamage = 1;
+
+        [Header("Vacuum専用")]
+        // 掃除機のダメージ間隔（秒）。0 = 毎フレーム（Rocket/BH は 0 のまま）
+        public float damageInterval = 0f;
+
         [Header("Camera")]
         public float shakeIntensity; // スクリーンシェイク強度。Vacuum=0, Rocket=0.3, BlackHole=0.8
     }

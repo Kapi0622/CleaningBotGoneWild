@@ -10,7 +10,9 @@ namespace CleaningBot.Player.Weapons
 {
     /// <summary>
     /// 掃除機ストラテジー。
-    /// クールタイムなし。向いた方向の短射程内にあるゴミを即時吸引・除去する。
+    /// クールタイムなし・副作用ゼロ。向いた方向の射程内にあるゴミに一定間隔（damageInterval）で
+    /// ダメージを与え続ける。HP1のゴミは1回のダメージで除去されるが、
+    /// HP2以上のゴミは複数回ヒットさせる必要がある。
     /// </summary>
     public class VacuumStrategy : IWeaponStrategy
     {
@@ -31,6 +33,7 @@ namespace CleaningBot.Player.Weapons
         private GameObject _activeEffect;
         private GameObject _indicator;
         private bool _fireSoundActive;
+        private float _lastDamageTime = float.MinValue;
 
         public VacuumStrategy(WeaponData data, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource)
         {
@@ -130,15 +133,24 @@ namespace CleaningBot.Player.Weapons
             }
 
             var garbageHits = OverlapSphereWithFallback(_origin.position, _data.blastRadius, _garbageBuffer, GarbageLayer, out int garbageCount);
-            for (int i = 0; i < garbageCount; i++)
-            {
-                var toTarget = (garbageHits[i].transform.position - _origin.position).normalized;
-                if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
+            bool canDamage = _data.damageInterval <= 0f
+                || Time.time >= _lastDamageTime + _data.damageInterval;
 
-                if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
+            if (canDamage)
+            {
+                bool didDamage = false;
+                for (int i = 0; i < garbageCount; i++)
                 {
-                    garbage.Remove();
+                    var toTarget = (garbageHits[i].transform.position - _origin.position).normalized;
+                    if (Vector3.Dot(direction, toTarget) < HalfConeCos) continue;
+
+                    if (garbageHits[i].TryGetComponent<GarbageBase>(out var garbage))
+                    {
+                        garbage.TakeDamage(_data.garbageDamage);
+                        didDamage = true;
+                    }
                 }
+                if (didDamage) _lastDamageTime = Time.time;
             }
 
             // 同じ前方コーン内にいる住人に怒り状態をトリガーする
