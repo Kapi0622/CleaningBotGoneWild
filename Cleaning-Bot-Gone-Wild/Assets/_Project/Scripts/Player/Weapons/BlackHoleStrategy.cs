@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.Data;
 using CleaningBot.Effects;
@@ -31,9 +32,9 @@ namespace CleaningBot.Player.Weapons
         private static readonly int GarbageLayer  = LayerMask.GetMask("Garbage");
         private static readonly int ResidentLayer = LayerMask.GetMask("Resident");
 
-        private readonly WeaponData                _data;
-        private readonly FloorGrid                 _floorGrid;
-        private readonly Transform                 _origin;
+        private readonly WeaponData                      _data;
+        private readonly IReadOnlyList<FloorGrid>        _floorGrids;
+        private readonly Transform                       _origin;
         private readonly AudioSource               _audioSource;
         private readonly Func<Vector3>             _getFacingDirection;
         private readonly CinemachineImpulseSource  _impulseSource;
@@ -53,7 +54,7 @@ namespace CleaningBot.Player.Weapons
 
         public BlackHoleStrategy(
             WeaponData data,
-            FloorGrid floorGrid,
+            IReadOnlyList<FloorGrid> floorGrids,
             Transform origin,
             AudioSource audioSource,
             Func<Vector3> getFacingDirection,
@@ -61,7 +62,7 @@ namespace CleaningBot.Player.Weapons
             CancellationToken persistentCt)
         {
             _data               = data;
-            _floorGrid          = floorGrid;
+            _floorGrids         = floorGrids;
             _origin             = origin;
             _audioSource        = audioSource;
             _getFacingDirection = getFacingDirection ?? throw new ArgumentNullException(nameof(getFacingDirection));
@@ -196,7 +197,8 @@ namespace CleaningBot.Player.Weapons
                         cancellationToken: ct);
 
                     int thisTick = baseD + (i < rem ? 1 : 0);
-                    _floorGrid.ApplyDamage(landingPoint, floorRadius, thisTick);
+                    foreach (var grid in _floorGrids)
+                        grid.ApplyDamage(landingPoint, floorRadius, thisTick);
                     AttractAndRemoveGarbage(landingPoint, removeRadius);
                 }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.Data;
@@ -43,7 +44,7 @@ namespace CleaningBot.Player
         private PlayerLocomotion _locomotion;
         private WeaponModel _weaponModel;
         private IReadOnlyList<WeaponData> _weaponDataList;
-        private FloorGrid _floorGrid;
+        private IReadOnlyList<FloorGrid> _floorGrids;
         private CancellationTokenSource _cts = new CancellationTokenSource();
         private CancellationTokenSource _persistentCts;
 
@@ -102,9 +103,13 @@ namespace CleaningBot.Player
         public void Initialize(
             WeaponModel weaponModel,
             PlayerLocomotion locomotion,
-            FloorGrid floorGrid,
+            IReadOnlyList<FloorGrid> floorGrids,
             IReadOnlyList<WeaponData> weaponDataList)
         {
+            if (floorGrids == null) throw new ArgumentNullException(nameof(floorGrids));
+            if (floorGrids.Count == 0)
+                throw new ArgumentException("floorGrids は空にできません。", nameof(floorGrids));
+
             // Awake() の実行順序に依存しないよう、ここでも null チェックする
             if (_audioSource == null)
                 _audioSource = GetComponent<AudioSource>();
@@ -114,10 +119,10 @@ namespace CleaningBot.Player
             _weaponModel    = weaponModel;
             _locomotion     = locomotion;
             _weaponDataList = weaponDataList;
-            _floorGrid      = floorGrid;
+            _floorGrids     = floorGrids;
             _persistentCts  = new CancellationTokenSource();
             _factory = new WeaponStrategyFactory(
-                weaponDataList, floorGrid, transform, _audioSource,
+                weaponDataList, floorGrids, transform, _audioSource,
                 () => _locomotion.FacingDirection, _impulseSource, _persistentCts.Token);
             SwitchWeapon(WeaponType.Vacuum);
         }
@@ -132,7 +137,7 @@ namespace CleaningBot.Player
             _persistentCts.Dispose();
             _persistentCts = new CancellationTokenSource();
             _factory = new WeaponStrategyFactory(
-                _weaponDataList, _floorGrid, transform, _audioSource,
+                _weaponDataList, _floorGrids, transform, _audioSource,
                 () => _locomotion.FacingDirection, _impulseSource, _persistentCts.Token);
             SwitchWeapon(WeaponType.Vacuum);
         }

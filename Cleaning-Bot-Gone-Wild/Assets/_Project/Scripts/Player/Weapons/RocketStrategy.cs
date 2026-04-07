@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.Data;
 using CleaningBot.Effects;
@@ -30,7 +31,7 @@ namespace CleaningBot.Player.Weapons
         private readonly Collider[] _residentBuffer = new Collider[16];
 
         private readonly WeaponData _data;
-        private readonly FloorGrid _floorGrid;
+        private readonly IReadOnlyList<FloorGrid> _floorGrids;
         private readonly Transform _origin;
         private readonly AudioSource _audioSource;
         private readonly CinemachineImpulseSource _impulseSource;
@@ -38,10 +39,10 @@ namespace CleaningBot.Player.Weapons
 
         private float _lastFireTime = float.MinValue;
 
-        public RocketStrategy(WeaponData data, FloorGrid floorGrid, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource, CancellationToken persistentCt)
+        public RocketStrategy(WeaponData data, IReadOnlyList<FloorGrid> floorGrids, Transform origin, AudioSource audioSource, CinemachineImpulseSource impulseSource, CancellationToken persistentCt)
         {
             _data          = data;
-            _floorGrid     = floorGrid;
+            _floorGrids    = floorGrids;
             _origin        = origin;
             _audioSource   = audioSource;
             _impulseSource = impulseSource;
@@ -112,7 +113,8 @@ namespace CleaningBot.Player.Weapons
                         garbage.TakeDamage(_data.garbageDamage);
                 }
 
-                _floorGrid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);
+                foreach (var grid in _floorGrids)
+                    grid.ApplyDamage(hitPoint, explosionRadius, (int)_data.floorDamage);
 
                 // 爆発範囲内の住人を吹き飛ばす
                 var residentHits = OverlapSphereWithFallback(hitPoint, explosionRadius, _residentBuffer, ResidentLayer, out int residentCount);

@@ -19,7 +19,7 @@ namespace CleaningBot.Player.Weapons
 
         public WeaponStrategyFactory(
             IReadOnlyList<WeaponData> dataList,
-            FloorGrid floorGrid,
+            IReadOnlyList<FloorGrid> floorGrids,
             Transform origin,
             AudioSource audioSource,
             Func<Vector3> getFacingDirection,
@@ -34,12 +34,12 @@ namespace CleaningBot.Player.Weapons
                 },
                 {
                     WeaponType.Rocket,
-                    new RocketStrategy(GetData(dataList, WeaponType.Rocket), floorGrid, origin, audioSource, impulseSource, persistentCt)
+                    new RocketStrategy(GetData(dataList, WeaponType.Rocket), floorGrids, origin, audioSource, impulseSource, persistentCt)
                 },
                 {
                     WeaponType.BlackHole,
                     new BlackHoleStrategy(
-                        GetData(dataList, WeaponType.BlackHole), floorGrid, origin, audioSource, getFacingDirection, impulseSource, persistentCt)
+                        GetData(dataList, WeaponType.BlackHole), floorGrids, origin, audioSource, getFacingDirection, impulseSource, persistentCt)
                 },
             };
         }
