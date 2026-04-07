@@ -53,6 +53,20 @@ namespace CleaningBot.Core
 
         private void Awake()
         {
+            // Inspector 設定の早期検証
+            if (_floorGrids == null || _floorGrids.Count == 0 || _floorGrids.Exists(g => g == null))
+            {
+                Debug.LogError("[Startup] _floorGrids が未設定または null 要素を含んでいます。Inspector を確認してください。");
+                enabled = false;
+                return;
+            }
+            if (_rooms == null || _rooms.Count == 0 || _rooms[0] == null)
+            {
+                Debug.LogError("[Startup] _rooms が未設定または先頭要素が null です。Inspector を確認してください。");
+                enabled = false;
+                return;
+            }
+
             // StageLoader 経由で StageData を取得
             var stageLoader = new StageLoader(_stageData);
             var stageData   = stageLoader.Load();
@@ -90,8 +104,9 @@ namespace CleaningBot.Core
             _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrids, stageData.weaponDataList);
 
             // 6. CameraDirector を生成（部屋ごとカメラ切り替え）
+            var startRoom      = _rooms[0];
             var cameraDirector = new CameraDirector(_rooms);
-            cameraDirector.Initialize(_rooms[0]);
+            cameraDirector.Initialize(startRoom);
 
             // 7. StageResetter を生成（リトライ処理の実体）
             var stageResetter = new StageResetter(
@@ -100,7 +115,7 @@ namespace CleaningBot.Core
                 _playerLocomotion.transform, stageData, gameStateController,
                 _weaponController,
                 _screenFadeView, _countdownView, _resultView, _timerView, _garbageView,
-                cameraDirector, _rooms[0]);
+                cameraDirector, startRoom);
 
             // 8. ResultPresenter（リトライ購読含む。必ず ChangeState より前に初期化する）
             new ResultPresenter().Initialize(

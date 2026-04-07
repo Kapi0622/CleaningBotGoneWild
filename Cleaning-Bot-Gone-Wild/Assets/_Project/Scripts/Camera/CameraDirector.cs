@@ -18,14 +18,21 @@ namespace CleaningBot.CameraSystem
 
         public CameraDirector(IReadOnlyList<RoomBounds> rooms)
         {
+            if (rooms == null) throw new ArgumentNullException(nameof(rooms));
+            if (rooms.Any(r => r == null))
+                throw new ArgumentException("rooms に null 要素が含まれています。", nameof(rooms));
             _rooms = rooms;
         }
 
         /// <summary>
-        /// 全部屋の OnPlayerEntered を購読する。
+        /// 全部屋の OnPlayerEntered を購読する。複数回呼ばれても安全。
         /// </summary>
         public void Initialize(RoomBounds startRoom)
         {
+            // 二重購読を防ぐため既存の購読を破棄してから再登録
+            _subscription?.Dispose();
+            _subscription = null;
+
             // 起動時は startRoom の VCam のみ有効化
             foreach (var room in _rooms)
             {
@@ -59,6 +66,7 @@ namespace CleaningBot.CameraSystem
         /// </summary>
         public void ResetToDefault(RoomBounds startRoom)
         {
+            if (startRoom == null) throw new ArgumentNullException(nameof(startRoom));
             foreach (var room in _rooms)
             {
                 if (room.VirtualCamera != null)

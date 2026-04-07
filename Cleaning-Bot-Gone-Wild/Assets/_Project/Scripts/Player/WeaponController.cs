@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.Data;
@@ -105,6 +106,10 @@ namespace CleaningBot.Player
             IReadOnlyList<FloorGrid> floorGrids,
             IReadOnlyList<WeaponData> weaponDataList)
         {
+            if (floorGrids == null) throw new ArgumentNullException(nameof(floorGrids));
+            if (floorGrids.Count == 0)
+                throw new ArgumentException("floorGrids は空にできません。", nameof(floorGrids));
+
             // Awake() の実行順序に依存しないよう、ここでも null チェックする
             if (_audioSource == null)
                 _audioSource = GetComponent<AudioSource>();

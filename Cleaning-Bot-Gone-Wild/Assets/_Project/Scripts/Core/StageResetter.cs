@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.CameraSystem;
@@ -59,6 +60,11 @@ namespace CleaningBot.Core
             CameraDirector      cameraDirector,
             RoomBounds          startRoom)
         {
+            if (floorGrids == null)     throw new ArgumentNullException(nameof(floorGrids));
+            if (floorGrids.Count == 0)  throw new ArgumentException("floorGrids は空にできません。", nameof(floorGrids));
+            if (cameraDirector == null) throw new ArgumentNullException(nameof(cameraDirector));
+            if (startRoom == null)      throw new ArgumentNullException(nameof(startRoom));
+
             _scoreModel          = scoreModel;
             _timerModel          = timerModel;
             _weaponModel         = weaponModel;
