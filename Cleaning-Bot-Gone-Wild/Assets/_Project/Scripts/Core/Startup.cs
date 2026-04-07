@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.Audio;
+using CleaningBot.CameraSystem;
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player;
@@ -21,7 +23,7 @@ namespace CleaningBot.Core
         [Header("Scene References")]
         [SerializeField] private PlayerLocomotion _playerLocomotion;
         [SerializeField] private WeaponController _weaponController;
-        [SerializeField] private FloorGrid _floorGrid;
+        [SerializeField] private List<FloorGrid> _floorGrids;
         [SerializeField] private GameTimer _gameTimer;
         [SerializeField] private GameSceneController _gameSceneController;
         [SerializeField] private Camera _mainCamera;
@@ -45,6 +47,9 @@ namespace CleaningBot.Core
         [SerializeField] private FloatingScoreView _floatingScoreView;
         [SerializeField] private ScreenFadeView _screenFadeView;
         [SerializeField] private CountdownView _countdownView;
+
+        [Header("Camera")]
+        [SerializeField] private List<RoomBounds> _rooms;
 
         private void Awake()
         {
@@ -78,30 +83,35 @@ namespace CleaningBot.Core
             var garbageTracker = new GarbageTracker(garbageModel, scoreModel, gameStateController);
             garbageTracker.Initialize();
 
-            // 4b. FloorGrid に ScoreModel を登録（床崩壊時の被害総額加算）
-            _floorGrid.RegisterScoreModel(scoreModel);
+            // 4b. 全 FloorGrid に ScoreModel を登録（床崩壊時の被害総額加算）
+            foreach (var grid in _floorGrids) grid.RegisterScoreModel(scoreModel);
 
             // 5. WeaponController（WeaponModel 注入）
-            _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrid, stageData.weaponDataList);
+            _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrids, stageData.weaponDataList);
 
-            // 6. StageResetter を生成（リトライ処理の実体）
+            // 6. CameraDirector を生成（部屋ごとカメラ切り替え）
+            var cameraDirector = new CameraDirector(_rooms);
+            cameraDirector.Initialize(_rooms[0]);
+
+            // 7. StageResetter を生成（リトライ処理の実体）
             var stageResetter = new StageResetter(
                 scoreModel, timerModel, weaponModel, garbageModel,
-                _floorGrid, _stageInitializer, garbageTracker,
+                _floorGrids, _stageInitializer, garbageTracker,
                 _playerLocomotion.transform, stageData, gameStateController,
                 _weaponController,
-                _screenFadeView, _countdownView, _resultView, _timerView, _garbageView);
+                _screenFadeView, _countdownView, _resultView, _timerView, _garbageView,
+                cameraDirector, _rooms[0]);
 
-            // 7. ResultPresenter（リトライ購読含む。必ず ChangeState より前に初期化する）
+            // 8. ResultPresenter（リトライ購読含む。必ず ChangeState より前に初期化する）
             new ResultPresenter().Initialize(
                 gameStateController, scoreModel, garbageModel,
                 timerModel, new RankCalculator(), new TimeBonusCalculator(),
                 stageData, stageResetter, _resultView);
 
-            // 8. BGM 開始
+            // 9. BGM 開始
             _bgmPlayer.Initialize(_audioConfig);
 
-            // 9. フェードイン → カウントダウン → ゲーム開始
+            // 10. フェードイン → カウントダウン → ゲーム開始
             StartGameAsync(gameStateController, this.GetCancellationTokenOnDestroy()).Forget();
         }
 

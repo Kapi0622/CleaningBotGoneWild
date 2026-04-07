@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Threading;
+using CleaningBot.CameraSystem;
 using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player;
@@ -20,7 +22,7 @@ namespace CleaningBot.Core
         private readonly TimerModel          _timerModel;
         private readonly WeaponModel         _weaponModel;
         private readonly GarbageModel        _garbageModel;
-        private readonly FloorGrid           _floorGrid;
+        private readonly IReadOnlyList<FloorGrid> _floorGrids;
         private readonly StageInitializer    _stageInitializer;
         private readonly GarbageTracker      _garbageTracker;
         private readonly Transform           _playerTransform;
@@ -32,6 +34,8 @@ namespace CleaningBot.Core
         private readonly ResultView          _resultView;
         private readonly TimerView           _timerView;
         private readonly GarbageView         _garbageView;
+        private readonly CameraDirector      _cameraDirector;
+        private readonly RoomBounds          _startRoom;
 
         private CancellationTokenSource _cts = new();
 
@@ -40,7 +44,7 @@ namespace CleaningBot.Core
             TimerModel          timerModel,
             WeaponModel         weaponModel,
             GarbageModel        garbageModel,
-            FloorGrid           floorGrid,
+            IReadOnlyList<FloorGrid> floorGrids,
             StageInitializer    stageInitializer,
             GarbageTracker      garbageTracker,
             Transform           playerTransform,
@@ -51,13 +55,15 @@ namespace CleaningBot.Core
             CountdownView       countdownView,
             ResultView          resultView,
             TimerView           timerView,
-            GarbageView         garbageView)
+            GarbageView         garbageView,
+            CameraDirector      cameraDirector,
+            RoomBounds          startRoom)
         {
             _scoreModel          = scoreModel;
             _timerModel          = timerModel;
             _weaponModel         = weaponModel;
             _garbageModel        = garbageModel;
-            _floorGrid           = floorGrid;
+            _floorGrids          = floorGrids;
             _stageInitializer    = stageInitializer;
             _garbageTracker      = garbageTracker;
             _playerTransform     = playerTransform;
@@ -69,6 +75,8 @@ namespace CleaningBot.Core
             _resultView          = resultView;
             _timerView           = timerView;
             _garbageView         = garbageView;
+            _cameraDirector      = cameraDirector;
+            _startRoom           = startRoom;
         }
 
         public async UniTask Reset()
@@ -88,7 +96,7 @@ namespace CleaningBot.Core
                     _timerModel.Reset();
                     _weaponModel.Reset();
                     _garbageModel.Reset();
-                    _floorGrid.Reset();
+                    foreach (var grid in _floorGrids) grid.Reset();
                     _stageInitializer.ReInitialize();
                     _garbageTracker.Initialize();
                     _playerTransform.position = _stageData.playerStartPosition;
@@ -102,6 +110,8 @@ namespace CleaningBot.Core
                     // 画面が黒い間にリザルトパネルを非表示・世界を停止
                     _resultView.Hide();
                     Time.timeScale = 0f;
+                    // カメラを初期部屋にリセット（画面が黒い間に瞬間移動させる）
+                    _cameraDirector.ResetToDefault(_startRoom);
                 }, ct);
 
                 await _countdownView.PlayCountdownAsync(ct);
