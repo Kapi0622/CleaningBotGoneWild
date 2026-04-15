@@ -71,7 +71,7 @@ namespace CleaningBot.Stage
                     : _stageData.residentPrefab;
                 if (prefab == null) continue;
 
-                var go    = Instantiate(prefab, spawnPoint.transform.position, Quaternion.identity, transform);
+                var go    = Instantiate(prefab, spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
                 var mover = go.GetComponent<ResidentMover>();
                 if (mover == null)
                 {

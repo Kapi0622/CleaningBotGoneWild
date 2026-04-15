@@ -72,12 +72,14 @@ namespace CleaningBot.Core
             if (floorGrids.Length == 0)
             {
                 Debug.LogError("[Startup] stageEnvironmentPrefab に FloorGrid が見つかりません。Prefab を確認してください。");
+                Destroy(stageEnv);
                 enabled = false;
                 return;
             }
             if (rooms.Length == 0)
             {
                 Debug.LogError("[Startup] stageEnvironmentPrefab に RoomBounds が見つかりません。Prefab を確認してください。");
+                Destroy(stageEnv);
                 enabled = false;
                 return;
             }
@@ -122,7 +124,10 @@ namespace CleaningBot.Core
             _weaponController.Initialize(weaponModel, _playerLocomotion, floorGrids, stageData.weaponDataList);
 
             // 6. CameraDirector を生成（部屋ごとカメラ切り替え）
-            var startRoom      = rooms[0];
+            // PlayerSpawn 位置を含む部屋を開始部屋とする。該当なければ先頭にフォールバック。
+            var startRoom = System.Array.Find(rooms,
+                r => r.TryGetComponent<Collider>(out var col) && col.bounds.Contains(playerStartPos))
+                ?? rooms[0];
             var cameraDirector = new CameraDirector(rooms);
             cameraDirector.Initialize(startRoom);
 
