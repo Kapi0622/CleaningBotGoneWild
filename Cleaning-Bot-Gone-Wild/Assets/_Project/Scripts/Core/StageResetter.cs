@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.CameraSystem;
-using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player;
 using CleaningBot.Score;
@@ -27,7 +26,7 @@ namespace CleaningBot.Core
         private readonly StageInitializer    _stageInitializer;
         private readonly GarbageTracker      _garbageTracker;
         private readonly Transform           _playerTransform;
-        private readonly StageData           _stageData;
+        private readonly Vector3             _playerStartPosition;
         private readonly GameStateController _gameStateController;
         private readonly WeaponController    _weaponController;
         private readonly ScreenFadeView      _screenFadeView;
@@ -49,7 +48,7 @@ namespace CleaningBot.Core
             StageInitializer    stageInitializer,
             GarbageTracker      garbageTracker,
             Transform           playerTransform,
-            StageData           stageData,
+            Vector3             playerStartPosition,
             GameStateController gameStateController,
             WeaponController    weaponController,
             ScreenFadeView      screenFadeView,
@@ -73,7 +72,7 @@ namespace CleaningBot.Core
             _stageInitializer    = stageInitializer;
             _garbageTracker      = garbageTracker;
             _playerTransform     = playerTransform;
-            _stageData           = stageData;
+            _playerStartPosition = playerStartPosition;
             _gameStateController = gameStateController;
             _weaponController    = weaponController;
             _screenFadeView      = screenFadeView;
@@ -105,7 +104,7 @@ namespace CleaningBot.Core
                     foreach (var grid in _floorGrids) grid.Reset();
                     _stageInitializer.ReInitialize();
                     _garbageTracker.Initialize();
-                    _playerTransform.position = _stageData.playerStartPosition;
+                    _playerTransform.position = _playerStartPosition;
                     // 飛行中ロケット・発動中ブラックホールを即時キャンセルし武器を初期化
                     _weaponController.ResetEffects();
 
