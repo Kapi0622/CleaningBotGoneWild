@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading;
 using CleaningBot.Audio;
 using CleaningBot.CameraSystem;
@@ -6,6 +5,7 @@ using CleaningBot.Data;
 using CleaningBot.Environment;
 using CleaningBot.Player;
 using CleaningBot.Presenter;
+using CleaningBot.Resident;
 using CleaningBot.Score;
 using CleaningBot.Stage;
 using CleaningBot.View;
@@ -23,7 +23,6 @@ namespace CleaningBot.Core
         [Header("Scene References")]
         [SerializeField] private PlayerLocomotion _playerLocomotion;
         [SerializeField] private WeaponController _weaponController;
-        [SerializeField] private List<FloorGrid> _floorGrids;
         [SerializeField] private GameTimer _gameTimer;
         [SerializeField] private GameSceneController _gameSceneController;
         [SerializeField] private Camera _mainCamera;
@@ -48,28 +47,46 @@ namespace CleaningBot.Core
         [SerializeField] private ScreenFadeView _screenFadeView;
         [SerializeField] private CountdownView _countdownView;
 
-        [Header("Camera")]
-        [SerializeField] private List<RoomBounds> _rooms;
-
         private void Awake()
         {
-            // Inspector 設定の早期検証
-            if (_floorGrids == null || _floorGrids.Count == 0 || _floorGrids.Exists(g => g == null))
-            {
-                Debug.LogError("[Startup] _floorGrids が未設定または null 要素を含んでいます。Inspector を確認してください。");
-                enabled = false;
-                return;
-            }
-            if (_rooms == null || _rooms.Count == 0 || _rooms[0] == null)
-            {
-                Debug.LogError("[Startup] _rooms が未設定または先頭要素が null です。Inspector を確認してください。");
-                enabled = false;
-                return;
-            }
-
             // StageLoader 経由で StageData を取得
             var stageLoader = new StageLoader(_stageData);
             var stageData   = stageLoader.Load();
+
+            // Inspector 設定の早期検証
+            if (stageData.stageEnvironmentPrefab == null)
+            {
+                Debug.LogError("[Startup] StageData.stageEnvironmentPrefab が未設定です。Inspector を確認してください。");
+                enabled = false;
+                return;
+            }
+
+            // 環境 Prefab をインスタンス化し、子コンポーネントを収集
+            var stageEnv       = Instantiate(stageData.stageEnvironmentPrefab);
+            var floorGrids     = stageEnv.GetComponentsInChildren<FloorGrid>();
+            var rooms          = stageEnv.GetComponentsInChildren<RoomBounds>();
+            var spawnPoints    = stageEnv.GetComponentsInChildren<ResidentSpawnPoint>();
+            var playerSpawnT   = stageEnv.transform.Find("PlayerSpawn");
+            var playerStartPos = playerSpawnT != null ? playerSpawnT.position : Vector3.zero;
+
+            if (floorGrids.Length == 0)
+            {
+                Debug.LogError("[Startup] stageEnvironmentPrefab に FloorGrid が見つかりません。Prefab を確認してください。");
+                Destroy(stageEnv);
+                enabled = false;
+                return;
+            }
+            if (rooms.Length == 0)
+            {
+                Debug.LogError("[Startup] stageEnvironmentPrefab に RoomBounds が見つかりません。Prefab を確認してください。");
+                Destroy(stageEnv);
+                enabled = false;
+                return;
+            }
+            if (playerSpawnT == null)
+            {
+                Debug.LogWarning("[Startup] stageEnvironmentPrefab に 'PlayerSpawn' オブジェクトが見つかりません。原点 (0,0,0) を使用します。");
+            }
 
             // 1. Model 生成
             var scoreModel   = new ScoreModel();
@@ -93,26 +110,32 @@ namespace CleaningBot.Core
             _gameSceneController.SetController(gameStateController);
 
             // 4. StageInitializer でゴミ・住人を生成し、GarbageTracker を初期化
-            _stageInitializer.Initialize(stageData, garbageModel, scoreModel, _playerLocomotion.transform);
+            _stageInitializer.Initialize(stageData, spawnPoints, garbageModel, scoreModel, _playerLocomotion.transform);
             var garbageTracker = new GarbageTracker(garbageModel, scoreModel, gameStateController);
             garbageTracker.Initialize();
 
             // 4b. 全 FloorGrid に ScoreModel を登録（床崩壊時の被害総額加算）
-            foreach (var grid in _floorGrids) grid.RegisterScoreModel(scoreModel);
+            foreach (var grid in floorGrids) grid.RegisterScoreModel(scoreModel);
+
+            // 4c. プレイヤーを初期位置に配置
+            _playerLocomotion.transform.position = playerStartPos;
 
             // 5. WeaponController（WeaponModel 注入）
-            _weaponController.Initialize(weaponModel, _playerLocomotion, _floorGrids, stageData.weaponDataList);
+            _weaponController.Initialize(weaponModel, _playerLocomotion, floorGrids, stageData.weaponDataList);
 
             // 6. CameraDirector を生成（部屋ごとカメラ切り替え）
-            var startRoom      = _rooms[0];
-            var cameraDirector = new CameraDirector(_rooms);
+            // PlayerSpawn 位置を含む部屋を開始部屋とする。該当なければ先頭にフォールバック。
+            var startRoom = System.Array.Find(rooms,
+                r => r.TryGetComponent<Collider>(out var col) && col.bounds.Contains(playerStartPos))
+                ?? rooms[0];
+            var cameraDirector = new CameraDirector(rooms);
             cameraDirector.Initialize(startRoom);
 
             // 7. StageResetter を生成（リトライ処理の実体）
             var stageResetter = new StageResetter(
                 scoreModel, timerModel, weaponModel, garbageModel,
-                _floorGrids, _stageInitializer, garbageTracker,
-                _playerLocomotion.transform, stageData, gameStateController,
+                floorGrids, _stageInitializer, garbageTracker,
+                _playerLocomotion.transform, playerStartPos, gameStateController,
                 _weaponController,
                 _screenFadeView, _countdownView, _resultView, _timerView, _garbageView,
                 cameraDirector, startRoom);
