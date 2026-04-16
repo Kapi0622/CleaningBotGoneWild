@@ -11,5 +11,8 @@ namespace CleaningBot.Data
     public class StageDatabase : ScriptableObject
     {
         public List<StageData> stages;
+
+        public int StageCount => stages?.Count ?? 0;
+        public StageData GetStage(int index) => stages[index];
     }
 }

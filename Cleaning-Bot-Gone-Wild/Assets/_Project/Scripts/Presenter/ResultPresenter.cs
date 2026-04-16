@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using CleaningBot.Core;
@@ -26,7 +27,9 @@ namespace CleaningBot.Presenter
             TimeBonusCalculator timeBonusCalc,
             StageData stageData,
             StageResetter stageResetter,
-            ResultView view)
+            SceneTransition sceneTransition,
+            ResultView view,
+            CancellationToken ct)
         {
             stateCtrl.OnStateChanged
                 .Subscribe(state =>
@@ -56,6 +59,15 @@ namespace CleaningBot.Presenter
                     if (ex is OperationCanceledException) return;
                     Debug.LogException(ex);
                 }))
+                .AddTo(view);
+
+            view.OnStageSelectClicked
+                .Subscribe(_ => sceneTransition.LoadSceneAsync("StageSelectScene", ct)
+                    .Forget(ex =>
+                    {
+                        if (ex is OperationCanceledException) return;
+                        Debug.LogException(ex);
+                    }))
                 .AddTo(view);
         }
     }
