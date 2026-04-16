@@ -19,6 +19,10 @@ namespace CleaningBot.Editor
         private static readonly Color FillColor    = new Color(0.30f, 0.80f, 0.30f, 0.07f);
         private static readonly Color LineColor    = new Color(0.30f, 0.80f, 0.30f, 0.22f);
 
+        // DrawSolidRectangleWithOutline に渡す配列を static で確保し、
+        // 毎フレームの new[] によるヒープ割り当てを回避する。
+        private static readonly Vector3[] _rect = new Vector3[4];
+
         private void OnSceneGUI()
         {
             var grid = (FloorGrid)target;
@@ -45,7 +49,8 @@ namespace CleaningBot.Editor
             Vector3 c3 = new Vector3(origin.x - halfCell,          origin.y, origin.z + totalD - halfCell);
 
             // 床面の塗りつぶし + 外枠
-            Handles.DrawSolidRectangleWithOutline(new[] { c0, c1, c2, c3 }, FillColor, OutlineColor);
+            _rect[0] = c0; _rect[1] = c1; _rect[2] = c2; _rect[3] = c3;
+            Handles.DrawSolidRectangleWithOutline(_rect, FillColor, OutlineColor);
 
             // セル区切り線 (400 セル以下の場合)
             if (gridWidth * gridDepth <= 400)

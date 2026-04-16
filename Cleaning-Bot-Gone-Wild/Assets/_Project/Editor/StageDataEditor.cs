@@ -87,11 +87,14 @@ namespace CleaningBot.Editor
 
             Event e = Event.current;
 
+            float baseY = GetBaseY(stageData);
+
             // カーソル位置のプレビュー円を描画
             if (e.type == EventType.MouseMove || e.type == EventType.MouseDrag)
             {
                 if (TryGetGroundPoint(HandleUtility.GUIPointToWorldRay(e.mousePosition), out Vector3 hover))
                 {
+                    hover.y = baseY;
                     Handles.color = new Color(1f, 1f, 0.3f, 0.7f);
                     Handles.DrawWireDisc(hover, Vector3.up, 0.4f);
                     Handles.DrawLine(hover, hover + Vector3.up * 0.6f);
@@ -104,6 +107,7 @@ namespace CleaningBot.Editor
             {
                 if (TryGetGroundPoint(HandleUtility.GUIPointToWorldRay(e.mousePosition), out Vector3 point))
                 {
+                    point.y = baseY;
                     Undo.RecordObject(stageData, "Add Garbage Spawn");
                     stageData.garbageSpawns.Add(new GarbageSpawnData { spawnPosition = point });
                     EditorUtility.SetDirty(stageData);
@@ -159,29 +163,50 @@ namespace CleaningBot.Editor
 
         private void CreateNewStageFromTemplate()
         {
-            var    stageData   = (StageData)target;
-            string sourcePath  = AssetDatabase.GetAssetPath(stageData);
-            string dir         = Path.GetDirectoryName(sourcePath);
-            int    newId       = stageData.stageId + 1;
+            var    stageData  = (StageData)target;
+            string sourcePath = AssetDatabase.GetAssetPath(stageData);
+            string dir        = Path.GetDirectoryName(sourcePath);
+
+            // --- StageDatabase を先に読み込んで newId を決定 ---
+            // 命名規則: stageId=0 → "Stage1"（displayNo = stageId + 1）に合わせ、
+            // DB 内の最大 stageId + 1 を newId にすることで既存資産と重複しない。
+            string[]      dbGuids = AssetDatabase.FindAssets("t:StageDatabase");
+            StageDatabase db      = null;
+            int           newId;
+
+            if (dbGuids.Length == 1)
+            {
+                db    = AssetDatabase.LoadAssetAtPath<StageDatabase>(
+                            AssetDatabase.GUIDToAssetPath(dbGuids[0]));
+                newId = ResolveNewId(db, stageData);
+            }
+            else
+            {
+                // DB なし / 複数: テンプレートの stageId から推定（フォールバック）
+                newId = stageData.stageId + 1;
+            }
+
+            // displayNo は命名規則 (stageId + 1 = 表示番号) に従って算出
+            int displayNo = newId + 1;
 
             // --- StageData を複製 ---
             string newAssetPath = AssetDatabase.GenerateUniqueAssetPath(
-                $"{dir}/StageData_Stage{newId}.asset");
+                $"{dir}/StageData_Stage{displayNo}.asset");
             AssetDatabase.CopyAsset(sourcePath, newAssetPath);
             AssetDatabase.SaveAssets();
 
             var newStage = AssetDatabase.LoadAssetAtPath<StageData>(newAssetPath);
             newStage.stageId     = newId;
-            newStage.stageName   = $"Stage{newId}";
-            newStage.displayName = $"ステージ {newId}";
+            newStage.stageName   = $"Stage{displayNo}";
+            newStage.displayName = $"ステージ {displayNo}";
 
             // --- 環境プレハブを複製 ---
             if (stageData.stageEnvironmentPrefab != null)
             {
-                string prefabSrc  = AssetDatabase.GetAssetPath(stageData.stageEnvironmentPrefab);
-                string prefabDir  = Path.GetDirectoryName(prefabSrc);
-                string newPrefab  = AssetDatabase.GenerateUniqueAssetPath(
-                    $"{prefabDir}/StageEnvironment_Stage{newId}.prefab");
+                string prefabSrc = AssetDatabase.GetAssetPath(stageData.stageEnvironmentPrefab);
+                string prefabDir = Path.GetDirectoryName(prefabSrc);
+                string newPrefab = AssetDatabase.GenerateUniqueAssetPath(
+                    $"{prefabDir}/StageEnvironment_Stage{displayNo}.prefab");
 
                 AssetDatabase.CopyAsset(prefabSrc, newPrefab);
                 AssetDatabase.SaveAssets();
@@ -193,19 +218,19 @@ namespace CleaningBot.Editor
             EditorUtility.SetDirty(newStage);
             AssetDatabase.SaveAssets();
 
-            // --- StageDatabase が1つだけ存在する場合に自動登録 ---
-            string[] dbGuids = AssetDatabase.FindAssets("t:StageDatabase");
-            if (dbGuids.Length == 1)
+            // --- StageDatabase への登録 ---
+            if (db != null && !db.stages.Contains(newStage))
             {
-                string       dbPath = AssetDatabase.GUIDToAssetPath(dbGuids[0]);
-                StageDatabase db    = AssetDatabase.LoadAssetAtPath<StageDatabase>(dbPath);
-                if (db != null && !db.stages.Contains(newStage))
-                {
-                    Undo.RecordObject(db, "Register New Stage");
-                    db.stages.Add(newStage);
-                    EditorUtility.SetDirty(db);
-                    AssetDatabase.SaveAssets();
-                }
+                Undo.RecordObject(db, "Register New Stage");
+                db.stages.Add(newStage);
+                EditorUtility.SetDirty(db);
+                AssetDatabase.SaveAssets();
+            }
+            else if (dbGuids.Length == 0)
+            {
+                Debug.LogWarning("[StageDataEditor] StageDatabase が見つかりません。" +
+                    $"Assets に StageDatabase を作成し、{newAssetPath} を手動で登録してください。" +
+                    "\n作成方法: Project ウィンドウで右クリック → Create > CleaningBot > StageDatabase");
             }
             else if (dbGuids.Length > 1)
             {
@@ -222,7 +247,28 @@ namespace CleaningBot.Editor
         // ユーティリティ
         // ---------------------------------------------------------------
 
-        /// <summary>Ray と Y=0 平面の交点を求める。</summary>
+        /// <summary>
+        /// StageDatabase 内の最大 stageId + 1 を返す。
+        /// DB が空の場合は stageData.stageId + 1 をフォールバックとして返す。
+        /// </summary>
+        private static int ResolveNewId(StageDatabase db, StageData fallback)
+        {
+            if (db == null || db.stages == null || db.stages.Count == 0)
+                return fallback.stageId + 1;
+
+            int maxId = fallback.stageId;
+            foreach (var s in db.stages)
+            {
+                if (s != null && s.stageId > maxId)
+                    maxId = s.stageId;
+            }
+            return maxId + 1;
+        }
+
+        /// <summary>
+        /// Ray と Y=0 平面の交点を求める。
+        /// 返す point.y は常に 0 なので、呼び出し側で GetBaseY() の値に上書きすること。
+        /// </summary>
         private static bool TryGetGroundPoint(Ray ray, out Vector3 point)
         {
             if (Mathf.Abs(ray.direction.y) < 1e-5f) { point = Vector3.zero; return false; }
@@ -230,6 +276,18 @@ namespace CleaningBot.Editor
             if (t < 0f) { point = Vector3.zero; return false; }
             point = ray.origin + ray.direction * t;
             return true;
+        }
+
+        /// <summary>
+        /// 新規スポーンに使う Y 座標を返す。
+        /// 既存スポーンが 1 件以上あればその先頭の Y を採用し、
+        /// なければデフォルト値 1f を返す。
+        /// </summary>
+        private static float GetBaseY(StageData stageData)
+        {
+            return stageData.garbageSpawns.Count > 0
+                ? stageData.garbageSpawns[0].spawnPosition.y
+                : 1f;
         }
     }
 }

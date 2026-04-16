@@ -18,6 +18,11 @@ namespace CleaningBot.Editor
         private static readonly Color OutlineColor = new Color(0.20f, 0.85f, 1.00f, 0.90f);
         private static readonly Color FillColor    = new Color(0.20f, 0.85f, 1.00f, 0.05f);
 
+        // DrawSolidRectangleWithOutline に渡す配列を static で確保し、
+        // 毎フレームの new[] によるヒープ割り当てを回避する。
+        private static readonly Vector3[] _floorRect   = new Vector3[4];
+        private static readonly Vector3[] _ceilingRect = new Vector3[4];
+
         private void OnSceneGUI()
         {
             var roomBounds = (RoomBounds)target;
@@ -37,12 +42,14 @@ namespace CleaningBot.Editor
             Vector3 b011 = new Vector3(b.min.x, b.max.y, b.max.z);
 
             // 床面（半透明塗りつぶし）
-            Handles.DrawSolidRectangleWithOutline(
-                new[] { b000, b100, b110, b010 }, FillColor, OutlineColor);
+            _floorRect[0] = b000; _floorRect[1] = b100;
+            _floorRect[2] = b110; _floorRect[3] = b010;
+            Handles.DrawSolidRectangleWithOutline(_floorRect, FillColor, OutlineColor);
 
             // 天井面
-            Handles.DrawSolidRectangleWithOutline(
-                new[] { b001, b101, b111, b011 }, Color.clear, OutlineColor);
+            _ceilingRect[0] = b001; _ceilingRect[1] = b101;
+            _ceilingRect[2] = b111; _ceilingRect[3] = b011;
+            Handles.DrawSolidRectangleWithOutline(_ceilingRect, Color.clear, OutlineColor);
 
             // 側面の垂直辺
             Handles.color = OutlineColor;
