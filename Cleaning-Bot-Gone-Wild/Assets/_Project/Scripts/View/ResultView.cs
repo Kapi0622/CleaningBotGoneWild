@@ -229,9 +229,9 @@ namespace CleaningBot.View
             if (_clearStageSelectGroup != null)
             {
                 _clearStageSelectGroup.alpha = 0f;
-                LMotion.Create(0f, 1f, 0.3f)
+                await LMotion.Create(0f, 1f, 0.3f)
                     .BindToAlpha(_clearStageSelectGroup)
-                    .AddTo(this);
+                    .ToUniTask(ct);
             }
 
             if (_clearRetryButton != null)
@@ -299,9 +299,9 @@ namespace CleaningBot.View
                 if (_failStageSelectGroup != null)
                 {
                     _failStageSelectGroup.alpha = 0f;
-                    LMotion.Create(0f, 1f, 0.3f)
+                    await LMotion.Create(0f, 1f, 0.3f)
                         .BindToAlpha(_failStageSelectGroup)
-                        .AddTo(this);
+                        .ToUniTask(ct);
                 }
             }
         }

@@ -17,8 +17,9 @@ namespace CleaningBot.View
         [SerializeField] private TMP_Text   _bestRankText;
 
         private int _stageIndex;
+        private Observable<int> _onClicked;
 
-        public Observable<int> OnClicked => _button.OnClicked.Select(_ => _stageIndex);
+        public Observable<int> OnClicked => _onClicked ??= _button.OnClicked.Select(_ => _stageIndex);
 
         public void Setup(int index, StageData data, bool isUnlocked, int bestRank)
         {

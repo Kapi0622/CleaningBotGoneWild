@@ -10,9 +10,13 @@ namespace CleaningBot.Data
     [CreateAssetMenu(fileName = "StageDatabase", menuName = "CleaningBot/StageDatabase")]
     public class StageDatabase : ScriptableObject
     {
-        public List<StageData> stages;
+        [SerializeField] private List<StageData> stages;
 
         public int StageCount => stages?.Count ?? 0;
         public StageData GetStage(int index) => stages[index];
+
+#if UNITY_EDITOR
+        public List<StageData> StagesForEditor => stages;
+#endif
     }
 }

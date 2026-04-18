@@ -219,10 +219,10 @@ namespace CleaningBot.Editor
             AssetDatabase.SaveAssets();
 
             // --- StageDatabase への登録 ---
-            if (db != null && !db.stages.Contains(newStage))
+            if (db != null && !db.StagesForEditor.Contains(newStage))
             {
                 Undo.RecordObject(db, "Register New Stage");
-                db.stages.Add(newStage);
+                db.StagesForEditor.Add(newStage);
                 EditorUtility.SetDirty(db);
                 AssetDatabase.SaveAssets();
             }
@@ -253,11 +253,11 @@ namespace CleaningBot.Editor
         /// </summary>
         private static int ResolveNewId(StageDatabase db, StageData fallback)
         {
-            if (db == null || db.stages == null || db.stages.Count == 0)
+            if (db == null || db.StagesForEditor == null || db.StagesForEditor.Count == 0)
                 return fallback.stageId + 1;
 
             int maxId = fallback.stageId;
-            foreach (var s in db.stages)
+            foreach (var s in db.StagesForEditor)
             {
                 if (s != null && s.stageId > maxId)
                     maxId = s.stageId;

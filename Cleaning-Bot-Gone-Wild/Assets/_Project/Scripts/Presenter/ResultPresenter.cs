@@ -1,11 +1,10 @@
-using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using R3;
 using CleaningBot.Core;
 using CleaningBot.Data;
 using CleaningBot.Score;
 using CleaningBot.View;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CleaningBot.Presenter
@@ -54,20 +53,11 @@ namespace CleaningBot.Presenter
                 .AddTo(view);
 
             view.OnRetryClicked
-                .Subscribe(_ => stageResetter.Reset().Forget(ex =>
-                {
-                    if (ex is OperationCanceledException) return;
-                    Debug.LogException(ex);
-                }))
+                .Subscribe(_ => stageResetter.Reset().ForgetWithLog())
                 .AddTo(view);
 
             view.OnStageSelectClicked
-                .Subscribe(_ => sceneTransition.LoadSceneAsync("StageSelectScene", ct)
-                    .Forget(ex =>
-                    {
-                        if (ex is OperationCanceledException) return;
-                        Debug.LogException(ex);
-                    }))
+                .Subscribe(_ => sceneTransition.LoadSceneAsync(SceneNames.StageSelect, ct).ForgetWithLog())
                 .AddTo(view);
         }
     }
