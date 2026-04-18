@@ -15,10 +15,13 @@ namespace CleaningBot.Data
         public int    stageId;
         public string stageName;
         public string displayName;
-        public float  timeLimit = 180f;
+        public float timeLimit = 180f;
+
+        [Header("プレイヤー設定")]
+        public Vector3 playerStartPosition;
 
         [Header("環境")]
-        [Tooltip("部屋・FloorGrid・PlayerSpawn・ResidentSpawnPoint を含む環境 Prefab")]
+        [Tooltip("部屋・FloorGrid・PlayerSpawn・ResidentSpawnPoint を含む環境 Prefab（任意）")]
         public GameObject stageEnvironmentPrefab;
 
         [Header("武器設定")]
@@ -29,13 +32,13 @@ namespace CleaningBot.Data
         public List<GarbageSpawnData> garbageSpawns;
 
         [Header("住人設定")]
-        [Tooltip("ResidentSpawnPoint.residentPrefabOverride が null のとき使用するデフォルト Prefab")]
         public GameObject residentPrefab;
         public int residentCount;
+        public List<Vector3> residentSpawnPoints;
 
         [Header("スコア設定")]
-        public int   scoreStar2Threshold    = 500;
-        public int   scoreStar3Threshold    = 1000;
+        public int scoreStar2Threshold = 500;
+        public int scoreStar3Threshold = 1000;
         public float timeBonusMaxMultiplier = 2.0f;
     }
 
