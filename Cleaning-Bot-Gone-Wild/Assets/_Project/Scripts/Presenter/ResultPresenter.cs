@@ -1,10 +1,10 @@
-using System;
-using Cysharp.Threading.Tasks;
+using System.Threading;
 using R3;
 using CleaningBot.Core;
 using CleaningBot.Data;
 using CleaningBot.Score;
 using CleaningBot.View;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CleaningBot.Presenter
@@ -26,7 +26,9 @@ namespace CleaningBot.Presenter
             TimeBonusCalculator timeBonusCalc,
             StageData stageData,
             StageResetter stageResetter,
-            ResultView view)
+            SceneTransition sceneTransition,
+            ResultView view,
+            CancellationToken ct)
         {
             stateCtrl.OnStateChanged
                 .Subscribe(state =>
@@ -51,11 +53,11 @@ namespace CleaningBot.Presenter
                 .AddTo(view);
 
             view.OnRetryClicked
-                .Subscribe(_ => stageResetter.Reset().Forget(ex =>
-                {
-                    if (ex is OperationCanceledException) return;
-                    Debug.LogException(ex);
-                }))
+                .Subscribe(_ => stageResetter.Reset().ForgetWithLog())
+                .AddTo(view);
+
+            view.OnStageSelectClicked
+                .Subscribe(_ => sceneTransition.LoadSceneAsync(SceneNames.StageSelect, ct).ForgetWithLog())
                 .AddTo(view);
         }
     }

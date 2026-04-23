@@ -12,11 +12,17 @@ namespace CleaningBot.Data
     public class StageData : ScriptableObject
     {
         [Header("基本設定")]
+        public int    stageId;
         public string stageName;
+        public string displayName;
         public float timeLimit = 180f;
 
         [Header("プレイヤー設定")]
         public Vector3 playerStartPosition;
+
+        [Header("環境")]
+        [Tooltip("部屋・FloorGrid・PlayerSpawn・ResidentSpawnPoint を含む環境 Prefab（任意）")]
+        public GameObject stageEnvironmentPrefab;
 
         [Header("武器設定")]
         public List<WeaponType> availableWeapons;

@@ -29,8 +29,12 @@ namespace CleaningBot.Core
         [SerializeField] private Camera _mainCamera;
 
         [Header("Stage")]
-        [SerializeField] private StageData _stageData;
         [SerializeField] private StageInitializer _stageInitializer;
+
+        [Header("Stage Selection")]
+        [SerializeField] private StageDatabase       _stageDatabase;
+        [SerializeField] private SelectedStageHolder _selectedStageHolder;
+        [SerializeField] private SceneTransition     _sceneTransition;
 
         [Header("Audio")]
         [SerializeField] private BgmPlayer _bgmPlayer;
@@ -67,9 +71,8 @@ namespace CleaningBot.Core
                 return;
             }
 
-            // StageLoader 経由で StageData を取得
-            var stageLoader = new StageLoader(_stageData);
-            var stageData   = stageLoader.Load();
+            // StageDatabase と SelectedStageHolder 経由で StageData を取得
+            var stageData = _stageDatabase.GetStage(_selectedStageHolder.SelectedStageIndex);
 
             // 1. Model 生成
             var scoreModel   = new ScoreModel();
@@ -121,7 +124,8 @@ namespace CleaningBot.Core
             new ResultPresenter().Initialize(
                 gameStateController, scoreModel, garbageModel,
                 timerModel, new RankCalculator(), new TimeBonusCalculator(),
-                stageData, stageResetter, _resultView);
+                stageData, stageResetter, _sceneTransition, _resultView,
+                this.GetCancellationTokenOnDestroy());
 
             // 9. BGM 開始
             _bgmPlayer.Initialize(_audioConfig);

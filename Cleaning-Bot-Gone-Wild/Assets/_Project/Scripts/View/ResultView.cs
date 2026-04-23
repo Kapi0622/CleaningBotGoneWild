@@ -42,10 +42,19 @@ namespace CleaningBot.View
         [SerializeField] private CanvasGroup _clearRetryGroup;
         [SerializeField] private CanvasGroup _failRetryGroup;
 
+        [Header("Stage Select Buttons")]
+        [SerializeField] private ClickEvent  _clearStageSelectButton;
+        [SerializeField] private ClickEvent  _failStageSelectButton;
+        [SerializeField] private CanvasGroup _clearStageSelectGroup;
+        [SerializeField] private CanvasGroup _failStageSelectGroup;
+
         private CancellationTokenSource _cts = new();
         private MotionHandle _pulseHandle;
         private Observable<Unit> _onRetryClicked;
+        private Observable<Unit> _onStageSelectClicked;
+
         public Observable<Unit> OnRetryClicked => _onRetryClicked ??= BuildOnRetryClicked();
+        public Observable<Unit> OnStageSelectClicked => _onStageSelectClicked ??= BuildOnStageSelectClicked();
 
         private Observable<Unit> BuildOnRetryClicked()
         {
@@ -56,6 +65,17 @@ namespace CleaningBot.View
                 throw new System.InvalidOperationException(
                     $"[ResultView] _failRetryButton が未アサインです。{gameObject.name} の Inspector を確認してください。");
             return Observable.Merge(_clearRetryButton.OnClicked, _failRetryButton.OnClicked);
+        }
+
+        private Observable<Unit> BuildOnStageSelectClicked()
+        {
+            if (_clearStageSelectButton == null)
+                throw new System.InvalidOperationException(
+                    $"[ResultView] _clearStageSelectButton が未アサインです。{gameObject.name} の Inspector を確認してください。");
+            if (_failStageSelectButton == null)
+                throw new System.InvalidOperationException(
+                    $"[ResultView] _failStageSelectButton が未アサインです。{gameObject.name} の Inspector を確認してください。");
+            return Observable.Merge(_clearStageSelectButton.OnClicked, _failStageSelectButton.OnClicked);
         }
 
         private void Awake()
@@ -137,6 +157,10 @@ namespace CleaningBot.View
             _pulseHandle = default;
             if (_clearRetryButton != null)
                 _clearRetryButton.transform.localScale = Vector3.one;
+            if (_clearStageSelectGroup != null)
+                _clearStageSelectGroup.alpha = 0f;
+            if (_failStageSelectGroup != null)
+                _failStageSelectGroup.alpha = 0f;
         }
 
         private async UniTaskVoid ShowClearAsync(ResultData data, CancellationToken ct)
@@ -194,20 +218,28 @@ namespace CleaningBot.View
             }
             _clearRankText.text += new string('\u2606', 3 - data.StarRank);
 
-            // (5) リトライボタンフェードイン + パルス
+            // (5) リトライ・ステージ選択ボタンフェードイン + パルス
             if (_clearRetryGroup != null)
             {
                 await LMotion.Create(0f, 1f, 0.3f)
                     .BindToAlpha(_clearRetryGroup)
                     .ToUniTask(ct);
+            }
 
-                if (_clearRetryButton != null)
-                {
-                    _pulseHandle = LMotion.Create(1f, 1.05f, 0.8f)
-                        .WithLoops(-1, LoopType.Yoyo)
-                        .WithEase(Ease.InOutSine)
-                        .BindToLocalScaleXYZ(_clearRetryButton.transform);
-                }
+            if (_clearStageSelectGroup != null)
+            {
+                _clearStageSelectGroup.alpha = 0f;
+                await LMotion.Create(0f, 1f, 0.3f)
+                    .BindToAlpha(_clearStageSelectGroup)
+                    .ToUniTask(ct);
+            }
+
+            if (_clearRetryButton != null)
+            {
+                _pulseHandle = LMotion.Create(1f, 1.05f, 0.8f)
+                    .WithLoops(-1, LoopType.Yoyo)
+                    .WithEase(Ease.InOutSine)
+                    .BindToLocalScaleXYZ(_clearRetryButton.transform);
             }
         }
 
@@ -252,13 +284,25 @@ namespace CleaningBot.View
                     .ToUniTask(ct);
             }
 
-            // (4) リトライボタン遅延表示
-            if (_failRetryGroup != null)
+            // (4) リトライ・ステージ選択ボタン遅延表示
+            if (_failRetryGroup != null || _failStageSelectGroup != null)
             {
                 await UniTask.Delay(500, cancellationToken: ct);
-                await LMotion.Create(0f, 1f, 0.3f)
-                    .BindToAlpha(_failRetryGroup)
-                    .ToUniTask(ct);
+
+                if (_failRetryGroup != null)
+                {
+                    await LMotion.Create(0f, 1f, 0.3f)
+                        .BindToAlpha(_failRetryGroup)
+                        .ToUniTask(ct);
+                }
+
+                if (_failStageSelectGroup != null)
+                {
+                    _failStageSelectGroup.alpha = 0f;
+                    await LMotion.Create(0f, 1f, 0.3f)
+                        .BindToAlpha(_failStageSelectGroup)
+                        .ToUniTask(ct);
+                }
             }
         }
 
