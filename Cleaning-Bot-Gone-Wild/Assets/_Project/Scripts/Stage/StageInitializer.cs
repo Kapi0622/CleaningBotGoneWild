@@ -15,7 +15,6 @@ namespace CleaningBot.Stage
     public class StageInitializer : MonoBehaviour
     {
         private StageData    _stageData;
-        private IReadOnlyList<ResidentSpawnPoint> _residentSpawnPoints;
         private GarbageModel _garbageModel;
         private ScoreModel   _scoreModel;
         private Transform    _playerTransform;
@@ -23,16 +22,13 @@ namespace CleaningBot.Stage
         private readonly List<GarbageBase>   _activeGarbages  = new();
         private readonly List<ResidentMover> _activeResidents = new();
 
-        public void Initialize(StageData stageData,
-                               IReadOnlyList<ResidentSpawnPoint> residentSpawnPoints,
-                               GarbageModel garbageModel,
+        public void Initialize(StageData stageData, GarbageModel garbageModel,
                                ScoreModel scoreModel, Transform playerTransform)
         {
-            _stageData           = stageData;
-            _residentSpawnPoints = residentSpawnPoints;
-            _garbageModel        = garbageModel;
-            _scoreModel          = scoreModel;
-            _playerTransform     = playerTransform;
+            _stageData       = stageData;
+            _garbageModel    = garbageModel;
+            _scoreModel      = scoreModel;
+            _playerTransform = playerTransform;
             SpawnAll();
         }
 
@@ -71,20 +67,16 @@ namespace CleaningBot.Stage
 
         private void SpawnResidents()
         {
-            var spawnCount = Mathf.Min(_stageData.residentCount, _residentSpawnPoints.Count);
+            var spawnCount = Mathf.Min(_stageData.residentCount, _stageData.residentSpawnPoints.Count);
             for (var i = 0; i < spawnCount; i++)
             {
-                var spawnPoint = _residentSpawnPoints[i];
-                var prefab     = spawnPoint.residentPrefabOverride != null
-                    ? spawnPoint.residentPrefabOverride
-                    : _stageData.residentPrefab;
-                if (prefab == null) continue;
-
-                var go    = Instantiate(prefab, spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
+                if (_stageData.residentPrefab == null) continue;
+                var go    = Instantiate(_stageData.residentPrefab, _stageData.residentSpawnPoints[i],
+                                        Quaternion.identity, transform);
                 var mover = go.GetComponent<ResidentMover>();
                 if (mover == null)
                 {
-                    Debug.LogWarning($"[StageInitializer] prefab '{prefab.name}' に ResidentMover がありません。破棄します。", prefab);
+                    Debug.LogWarning($"[StageInitializer] prefab '{_stageData.residentPrefab.name}' に ResidentMover がありません。破棄します。", _stageData.residentPrefab);
                     Destroy(go);
                     continue;
                 }
