@@ -65,6 +65,7 @@ namespace CleaningBot.Environment
             _currentHp = _maxHp;
             _state = TileState.Normal;
             _collider.enabled = true;
+            _renderer.enabled = true;
             ApplyColor(_normalColor);
         }
 
@@ -78,19 +79,19 @@ namespace CleaningBot.Environment
         {
             if (next == _state) return;
             _state = next;
-            _collider.enabled = (next != TileState.Collapsed);
 
-            if (next == TileState.Cracked)   OnCracked();
-            if (next == TileState.Collapsed) { OnCollapsed(); OnCollapsedEvent?.Invoke(); }
-
-            // プロトタイプ用の色フィードバック（STEP 12 でテクスチャ/エフェクトに置き換え）
-            Color color = next switch
+            if (next == TileState.Cracked)
             {
-                TileState.Cracked   => new Color(1f, 0.6f, 0.2f),
-                TileState.Collapsed => new Color(0.3f, 0.1f, 0.1f),
-                _                   => _normalColor,
-            };
-            ApplyColor(color);
+                OnCracked();
+                ApplyColor(new Color(1f, 0.6f, 0.2f));
+            }
+            else if (next == TileState.Collapsed)
+            {
+                _collider.enabled = false;
+                _renderer.enabled = false;
+                OnCollapsed();
+                OnCollapsedEvent?.Invoke();
+            }
         }
 
         protected virtual void OnCracked()

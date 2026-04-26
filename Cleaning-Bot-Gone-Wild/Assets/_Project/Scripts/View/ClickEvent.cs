@@ -23,11 +23,12 @@ namespace CleaningBot.View
         IPointerUpHandler
     {
         [Header("Color Transition")]
-        [SerializeField] private Color _normalColor    = new Color(1f, 1f, 1f, 1f);
-        [SerializeField] private Color _highlightColor = new Color(0.9607843f, 0.9607843f, 0.9607843f, 1f);
-        [SerializeField] private Color _pressedColor   = new Color(0.7843137f, 0.7843137f, 0.7843137f, 1f);
-        [SerializeField] private Color _disabledColor  = new Color(0.7843137f, 0.7843137f, 0.7843137f, 0.502f);
-        [SerializeField] [Range(0f, 5f)] private float _fadeDuration = 0.1f;
+        [SerializeField] [Range(0f, 2f)] private float _highlightBrightness = 1.1f;
+        [SerializeField] [Range(0f, 1f)] private float _pressedBrightness   = 0.78f;
+        [SerializeField] [Range(0f, 1f)] private float _disabledAlpha       = 0.5f;
+        [SerializeField] [Range(0f, 5f)] private float _fadeDuration        = 0.1f;
+
+        private Color _baseColor;
 
         [Header("Interactable")]
         [SerializeField] private bool _interactable = true;
@@ -48,15 +49,34 @@ namespace CleaningBot.View
             set
             {
                 _interactable = value;
-                ApplyColor(_interactable ? _normalColor : _disabledColor);
+                ApplyColor(_interactable ? _baseColor : DisabledColor);
             }
         }
+
+        private Color HighlightColor => new Color(
+            Mathf.Clamp01(_baseColor.r * _highlightBrightness),
+            Mathf.Clamp01(_baseColor.g * _highlightBrightness),
+            Mathf.Clamp01(_baseColor.b * _highlightBrightness),
+            _baseColor.a);
+
+        private Color PressedColor => new Color(
+            _baseColor.r * _pressedBrightness,
+            _baseColor.g * _pressedBrightness,
+            _baseColor.b * _pressedBrightness,
+            _baseColor.a);
+
+        private Color DisabledColor => new Color(
+            _baseColor.r,
+            _baseColor.g,
+            _baseColor.b,
+            _baseColor.a * _disabledAlpha);
 
         private void Awake()
         {
             _image = GetComponent<Image>();
+            _baseColor = _image.color;
             _soundPlayer = GetComponentInParent<UiSoundPlayer>();
-            ApplyColor(_interactable ? _normalColor : _disabledColor);
+            ApplyColor(_interactable ? _baseColor : DisabledColor);
         }
 
         public void OnPointerClick(PointerEventData _)
@@ -79,7 +99,7 @@ namespace CleaningBot.View
         public void OnPointerEnter(PointerEventData _)
         {
             if (!_interactable) return;
-            ApplyColor(_highlightColor);
+            ApplyColor(HighlightColor);
             if (_hoverHandle.IsActive()) _hoverHandle.Cancel();
             _hoverHandle = LMotion.Create(transform.localScale, Vector3.one * 1.05f, 0.1f)
                 .WithEase(Ease.OutQuad)
@@ -89,7 +109,7 @@ namespace CleaningBot.View
         public void OnPointerExit(PointerEventData _)
         {
             if (!_interactable) return;
-            ApplyColor(_normalColor);
+            ApplyColor(_baseColor);
             if (_hoverHandle.IsActive()) _hoverHandle.Cancel();
             _hoverHandle = LMotion.Create(transform.localScale, Vector3.one, 0.1f)
                 .WithEase(Ease.OutQuad)
@@ -99,13 +119,13 @@ namespace CleaningBot.View
         public void OnPointerDown(PointerEventData _)
         {
             if (!_interactable) return;
-            ApplyColor(_pressedColor);
+            ApplyColor(PressedColor);
         }
 
         public void OnPointerUp(PointerEventData _)
         {
             if (!_interactable) return;
-            ApplyColor(_highlightColor);
+            ApplyColor(HighlightColor);
         }
 
         private void ApplyColor(Color target)

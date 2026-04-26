@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Data.StageData
   stageId: 0
   stageName: Stage1
-  displayName: 
+  displayName: "\u30B9\u30C6\u30FC\u30B81"
   timeLimit: 60
   stageEnvironmentPrefab: {fileID: 9082677286034163318, guid: 3764840c29d493a43bd308182eae7d04, type: 3}
   availableWeapons: 
