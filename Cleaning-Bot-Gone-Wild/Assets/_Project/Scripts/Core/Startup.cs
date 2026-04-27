@@ -57,22 +57,32 @@ namespace CleaningBot.Core
 
         private void Awake()
         {
-            // Inspector 設定の早期検証
+            // StageDatabase と SelectedStageHolder 経由で StageData を取得
+            var stageData = _stageDatabase.GetStage(_selectedStageHolder.SelectedStageIndex);
+
+            // 環境プレハブを生成し、FloorGrid / RoomBounds を自動収集（Inspector 未設定時のフォールバック）
+            if (stageData.stageEnvironmentPrefab != null)
+            {
+                var env = Instantiate(stageData.stageEnvironmentPrefab);
+                if (_floorGrids == null || _floorGrids.Count == 0 || _floorGrids.Exists(g => g == null))
+                    _floorGrids = new List<FloorGrid>(env.GetComponentsInChildren<FloorGrid>(true));
+                if (_rooms == null || _rooms.Count == 0 || _rooms[0] == null)
+                    _rooms = new List<RoomBounds>(env.GetComponentsInChildren<RoomBounds>(true));
+            }
+
+            // Inspector 設定の検証（自動収集後）
             if (_floorGrids == null || _floorGrids.Count == 0 || _floorGrids.Exists(g => g == null))
             {
-                Debug.LogError("[Startup] _floorGrids が未設定または null 要素を含んでいます。Inspector を確認してください。");
+                Debug.LogError("[Startup] _floorGrids が未設定です。stageEnvironmentPrefab に FloorGrid を含むか、Inspector で設定してください。");
                 enabled = false;
                 return;
             }
             if (_rooms == null || _rooms.Count == 0 || _rooms[0] == null)
             {
-                Debug.LogError("[Startup] _rooms が未設定または先頭要素が null です。Inspector を確認してください。");
+                Debug.LogError("[Startup] _rooms が未設定です。stageEnvironmentPrefab に RoomBounds を含むか、Inspector で設定してください。");
                 enabled = false;
                 return;
             }
-
-            // StageDatabase と SelectedStageHolder 経由で StageData を取得
-            var stageData = _stageDatabase.GetStage(_selectedStageHolder.SelectedStageIndex);
 
             // 1. Model 生成
             var scoreModel   = new ScoreModel();
