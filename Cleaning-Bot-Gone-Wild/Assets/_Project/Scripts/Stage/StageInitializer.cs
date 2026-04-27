@@ -40,6 +40,12 @@ namespace CleaningBot.Stage
 
         private void SpawnAll()
         {
+            SpawnGarbages();
+            SpawnResidents();
+        }
+
+        private void SpawnGarbages()
+        {
             var registry = new GarbageRegistry(_garbageModel);
 
             foreach (var spawn in _stageData.garbageSpawns)
@@ -57,7 +63,10 @@ namespace CleaningBot.Stage
                 _activeGarbages.Add(garbage);
             }
             _garbageModel.SetInitialCount(_activeGarbages.Count);
+        }
 
+        private void SpawnResidents()
+        {
             var spawnCount = Mathf.Min(_stageData.residentCount, _stageData.residentSpawnPoints.Count);
             for (var i = 0; i < spawnCount; i++)
             {
