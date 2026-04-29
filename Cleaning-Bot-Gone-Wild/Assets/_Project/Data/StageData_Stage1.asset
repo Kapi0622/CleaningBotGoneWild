@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75647218da8a6404b8cb14e118a7b8be, type: 3}
   m_Name: StageData_Stage1
   m_EditorClassIdentifier: Assembly-CSharp::CleaningBot.Data.StageData
+  stageId: 0
   stageName: Stage1
   displayName: "\u30B9\u30C6\u30FC\u30B81"
   timeLimit: 60
+  playerStartPosition: {x: 0, y: 0, z: 0}
   stageEnvironmentPrefab: {fileID: 9082677286034163318, guid: 3764840c29d493a43bd308182eae7d04, type: 3}
   availableWeapons: 
   weaponDataList:
@@ -39,6 +41,13 @@ MonoBehaviour:
   - {x: 14, y: 1, z: 3}
   - {x: 14, y: 1, z: 14}
   - {x: 9, y: 1, z: 9}
+  residentMoveSpeedMultiplier: 1
   scoreStar2Threshold: 500
   scoreStar3Threshold: 1000
   timeBonusMaxMultiplier: 2
+  hasBonusPhase: 1
+  bonusGarbagePrefab: {fileID: 5161560220382259927, guid: 2544514b067edab4db71fe2925f2af08, type: 3}
+  bonusSpawnInterval: 3
+  bonusMaxActiveCount: 5
+  maxCoreFallCount: 2
+  respawnTimePenalty: 5

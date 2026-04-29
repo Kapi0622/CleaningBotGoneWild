@@ -30,6 +30,8 @@ namespace CleaningBot.Core
         private readonly StageData           _stageData;
         private readonly GameStateController _gameStateController;
         private readonly WeaponController    _weaponController;
+        private readonly PlayerRespawner     _playerRespawner;
+        private readonly BonusGarbageSpawner _bonusSpawner;
         private readonly ScreenFadeView      _screenFadeView;
         private readonly CountdownView       _countdownView;
         private readonly ResultView          _resultView;
@@ -52,6 +54,8 @@ namespace CleaningBot.Core
             StageData           stageData,
             GameStateController gameStateController,
             WeaponController    weaponController,
+            PlayerRespawner     playerRespawner,
+            BonusGarbageSpawner bonusSpawner,
             ScreenFadeView      screenFadeView,
             CountdownView       countdownView,
             ResultView          resultView,
@@ -76,6 +80,8 @@ namespace CleaningBot.Core
             _stageData           = stageData;
             _gameStateController = gameStateController;
             _weaponController    = weaponController;
+            _playerRespawner     = playerRespawner;
+            _bonusSpawner        = bonusSpawner;
             _screenFadeView      = screenFadeView;
             _countdownView       = countdownView;
             _resultView          = resultView;
@@ -105,6 +111,8 @@ namespace CleaningBot.Core
                     foreach (var grid in _floorGrids) grid.Reset();
                     _stageInitializer.ReInitialize();
                     _garbageTracker.Initialize();
+                    _playerRespawner.Reset();
+                    _bonusSpawner.StopSpawning();
                     _playerTransform.position = _stageData.playerStartPosition;
                     // 飛行中ロケット・発動中ブラックホールを即時キャンセルし武器を初期化
                     _weaponController.ResetEffects();

@@ -28,6 +28,9 @@ namespace CleaningBot.Environment
         /// <summary>タイルが Collapsed 状態に遷移したとき発火する。FloorGrid が購読して SubScore を加算する。</summary>
         public event Action OnCollapsedEvent;
 
+        /// <summary>BonusGarbageSpawner がスポーン位置の選定に使う。</summary>
+        public bool IsCollapsed => _state == TileState.Collapsed;
+
         private int _currentHp;
         private TileState _state = TileState.Normal;
         private Collider _collider;

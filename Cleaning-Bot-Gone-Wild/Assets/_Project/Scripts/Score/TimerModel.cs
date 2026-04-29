@@ -30,6 +30,10 @@ namespace CleaningBot.Score
         public void Tick(float deltaTime)
             => RemainingTime.Value = Mathf.Max(0f, RemainingTime.Value - deltaTime);
 
+        /// <summary>ボーナスフェーズ落下ペナルティ用。指定秒数を残り時間から即時減算する。</summary>
+        public void SubtractTime(float seconds)
+            => RemainingTime.Value = Mathf.Max(0f, RemainingTime.Value - seconds);
+
         public void Reset() => RemainingTime.Value = _initialTime;
     }
 }

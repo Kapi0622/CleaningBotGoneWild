@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CleaningBot.Score;
 using UnityEngine;
 
@@ -88,6 +89,29 @@ namespace CleaningBot.Environment
             {
                 tile.ResetState();
             }
+        }
+
+        /// <summary>
+        /// 崩壊済みタイルとプレイヤー周囲 excludeRadius 内を除いたタイルからランダムにワールド座標を返す。
+        /// BonusGarbageSpawner がスポーン位置の決定に使う。候補がなければ null を返す。
+        /// </summary>
+        public Vector3? GetRandomAlivePosition(float excludeRadius, Vector3 playerPos)
+        {
+            var candidates = new List<Vector3>();
+            for (int x = 0; x < _gridWidth; x++)
+            {
+                for (int z = 0; z < _gridDepth; z++)
+                {
+                    if (_tiles[x, z] == null || _tiles[x, z].IsCollapsed) continue;
+                    var worldPos = GridToWorld(x, z);
+                    float dx = worldPos.x - playerPos.x;
+                    float dz = worldPos.z - playerPos.z;
+                    if (dx * dx + dz * dz > excludeRadius * excludeRadius)
+                        candidates.Add(worldPos + Vector3.up * 0.5f);
+                }
+            }
+            if (candidates.Count == 0) return null;
+            return candidates[Random.Range(0, candidates.Count)];
         }
 
         private Vector3 GridToWorld(int x, int z)

@@ -6,16 +6,19 @@ namespace CleaningBot.Core
     /// </summary>
     public class InGameState : IGameState
     {
-        private const float FallThresholdY = -5f;
-
         public void OnEnter(GameStateController ctx) => ctx.GameTimer.StartTimer();
 
         public void OnExit(GameStateController ctx) { }
 
         public void Update(GameStateController ctx)
         {
-            if (ctx.TimerModel.IsTimeUp || ctx.PlayerTransform.position.y < FallThresholdY)
+            if (ctx.TimerModel.IsTimeUp)
+            {
                 ctx.ChangeState(new FailState());
+                return;
+            }
+
+            ctx.PlayerRespawner.CheckAndHandleFall(ctx, isCore: true);
         }
     }
 }

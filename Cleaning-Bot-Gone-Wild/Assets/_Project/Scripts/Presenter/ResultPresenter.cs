@@ -33,18 +33,27 @@ namespace CleaningBot.Presenter
             stateCtrl.OnStateChanged
                 .Subscribe(state =>
                 {
-                    if (state is InGameState) { view.Hide(); return; }
+                    if (state is InGameState || state is BonusState) { view.Hide(); return; }
 
                     var isCleared = state is ClearState;
+
+                    // ボーナスフェーズ経由のクリアはコアクリア時点の値を使って時間ボーナスを確定する
+                    var remainingForBonus = scoreModel.HasCoreClearSnapshot
+                        ? scoreModel.CoreClearRemainingTime
+                        : timerModel.RemainingTime.Value;
+                    var elapsedForResult = scoreModel.HasCoreClearSnapshot
+                        ? scoreModel.CoreClearElapsedTime
+                        : timerModel.ElapsedTime;
+
                     var finalScore = isCleared
-                        ? timeBonusCalc.Calculate(scoreModel.MainScore.Value, timerModel.RemainingTime.Value, stageData.timeLimit, stageData.timeBonusMaxMultiplier)
+                        ? timeBonusCalc.Calculate(scoreModel.MainScore.Value, remainingForBonus, stageData.timeLimit, stageData.timeBonusMaxMultiplier)
                         : scoreModel.MainScore.Value;
 
                     var data = new ResultData(
                         finalScore,
                         scoreModel.SubScore.Value,
                         garbageModel.RemainingCount.Value,
-                        timerModel.ElapsedTime,
+                        elapsedForResult,
                         rankCalc.Calculate(finalScore, stageData, isCleared));
 
                     if (state is ClearState) view.ShowClear(data);
