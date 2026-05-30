@@ -136,7 +136,7 @@ namespace CleaningBot.Core
             var stageResetter = new StageResetter(
                 scoreModel, timerModel, weaponModel, garbageModel,
                 _floorGrids, _stageInitializer, garbageTracker,
-                _playerLocomotion.transform, stageData, gameStateController,
+                gameStateController,
                 _weaponController, playerRespawner, bonusSpawner,
                 _screenFadeView, _countdownView, _resultView, _timerView, _garbageView,
                 cameraDirector, startRoom);

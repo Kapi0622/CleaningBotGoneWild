@@ -65,6 +65,12 @@ namespace CleaningBot.Core
             RespawnAsync(_cts.Token).Forget();
         }
 
+        /// <summary>
+        /// 速度ゼロ化込みでスポーン位置に瞬間移動する。
+        /// StageResetter が Transform 直書きする代わりにここを呼ぶことで Rigidbody の残速を確実に消せる。
+        /// </summary>
+        public void TeleportToSpawn() => _locomotion.Teleport(_spawnPosition);
+
         /// <summary>リトライ時に呼ぶ。落下カウントをリセットし進行中のリスポーンをキャンセルする。</summary>
         public void Reset()
         {

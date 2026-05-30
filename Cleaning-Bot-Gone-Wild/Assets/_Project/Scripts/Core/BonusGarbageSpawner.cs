@@ -42,11 +42,8 @@ namespace CleaningBot.Core
         /// <summary>BonusState.OnEnter から呼ぶ。スポーンループを開始する。</summary>
         public void StartSpawning()
         {
-            _cts?.Cancel();
-            _cts?.Dispose();
-            _cts         = new CancellationTokenSource();
-            _activeCount = 0;
-            _activeGarbages.Clear();
+            StopSpawning();   // 旧ゴミ破棄・カウントリセットを StopSpawning に一本化（再入安全）
+            _cts = new CancellationTokenSource();
             SpawnLoopAsync(_cts.Token).Forget();
         }
 
@@ -74,9 +71,8 @@ namespace CleaningBot.Core
             {
                 while (true)
                 {
-                    await UniTask.Delay(
-                        Mathf.RoundToInt(_stageData.bonusSpawnInterval * 1000),
-                        cancellationToken: ct);
+                    var intervalMs = Mathf.Max(100, Mathf.RoundToInt(_stageData.bonusSpawnInterval * 1000f));
+                    await UniTask.Delay(intervalMs, cancellationToken: ct);
 
                     if (_activeCount < _stageData.bonusMaxActiveCount)
                         SpawnOne();

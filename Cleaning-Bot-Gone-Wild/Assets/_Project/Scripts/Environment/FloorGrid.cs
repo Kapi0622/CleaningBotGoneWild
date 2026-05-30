@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using CleaningBot.Score;
 using UnityEngine;
 
@@ -97,7 +96,9 @@ namespace CleaningBot.Environment
         /// </summary>
         public Vector3? GetRandomAlivePosition(float excludeRadius, Vector3 playerPos)
         {
-            var candidates = new List<Vector3>();
+            float excludeSqr = excludeRadius * excludeRadius;
+            int seen = 0;
+            Vector3 picked = default;
             for (int x = 0; x < _gridWidth; x++)
             {
                 for (int z = 0; z < _gridDepth; z++)
@@ -106,12 +107,12 @@ namespace CleaningBot.Environment
                     var worldPos = GridToWorld(x, z);
                     float dx = worldPos.x - playerPos.x;
                     float dz = worldPos.z - playerPos.z;
-                    if (dx * dx + dz * dz > excludeRadius * excludeRadius)
-                        candidates.Add(worldPos + Vector3.up * 0.5f);
+                    if (dx * dx + dz * dz <= excludeSqr) continue;
+                    if (Random.Range(0, ++seen) == 0)
+                        picked = worldPos + Vector3.up * 0.5f;
                 }
             }
-            if (candidates.Count == 0) return null;
-            return candidates[Random.Range(0, candidates.Count)];
+            return seen == 0 ? null : picked;
         }
 
         private Vector3 GridToWorld(int x, int z)
