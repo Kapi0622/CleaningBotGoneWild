@@ -81,6 +81,7 @@ namespace CleaningBot.Stage
                     continue;
                 }
                 mover.Initialize(_playerTransform);
+                mover.SetSpeedMultiplier(_stageData.residentMoveSpeedMultiplier);
                 if (go.TryGetComponent<ResidentReactor>(out var reactor))
                     reactor.Initialize(_scoreModel);
                 _activeResidents.Add(mover);

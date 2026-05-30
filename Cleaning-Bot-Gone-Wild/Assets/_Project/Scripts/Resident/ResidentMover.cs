@@ -17,6 +17,7 @@ namespace CleaningBot.Resident
         [SerializeField] private float _arrivalThreshold = 0.3f;
         [SerializeField] private float _hitRecoveryTime  = 1.5f;
 
+        private float         _speedMultiplier = 1.0f;
         private Rigidbody     _rb;
         private Transform     _playerTransform;
         private ResidentState _state = ResidentState.Idle;
@@ -28,6 +29,11 @@ namespace CleaningBot.Resident
         public void Initialize(Transform playerTransform)
         {
             _playerTransform = playerTransform;
+        }
+
+        public void SetSpeedMultiplier(float multiplier)
+        {
+            _speedMultiplier = Mathf.Max(0.1f, multiplier);
         }
 
         /// <summary>
@@ -71,7 +77,7 @@ namespace CleaningBot.Resident
         private void UpdateIdle()
         {
             var next = Vector3.MoveTowards(_rb.position, _wanderTarget,
-                _idleMoveSpeed * Time.fixedDeltaTime);
+                _idleMoveSpeed * _speedMultiplier * Time.fixedDeltaTime);
             _rb.MovePosition(next);
 
             var dir = (_wanderTarget - _rb.position);
@@ -92,7 +98,7 @@ namespace CleaningBot.Resident
             if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
             dir.Normalize();
 
-            _rb.MovePosition(_rb.position + dir * (_fleeMoveSpeed * Time.fixedDeltaTime));
+            _rb.MovePosition(_rb.position + dir * (_fleeMoveSpeed * _speedMultiplier * Time.fixedDeltaTime));
             transform.forward = dir;
         }
 

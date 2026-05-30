@@ -35,11 +35,23 @@ namespace CleaningBot.Data
         public GameObject residentPrefab;
         public int residentCount;
         public List<Vector3> residentSpawnPoints;
+        [Range(0.5f, 3.0f)]
+        public float residentMoveSpeedMultiplier = 1.0f;
 
         [Header("スコア設定")]
         public int scoreStar2Threshold = 500;
         public int scoreStar3Threshold = 1000;
         public float timeBonusMaxMultiplier = 2.0f;
+
+        [Header("ボーナスフェーズ設定")]
+        public bool hasBonusPhase = true;
+        public GameObject bonusGarbagePrefab;
+        public float bonusSpawnInterval = 3f;
+        public int bonusMaxActiveCount = 5;
+
+        [Header("リスポーン設定")]
+        public int maxCoreFallCount = 2;
+        public float respawnTimePenalty = 5f;
     }
 
     [Serializable]

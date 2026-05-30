@@ -90,6 +90,31 @@ namespace CleaningBot.Environment
             }
         }
 
+        /// <summary>
+        /// 崩壊済みタイルとプレイヤー周囲 excludeRadius 内を除いたタイルからランダムにワールド座標を返す。
+        /// BonusGarbageSpawner がスポーン位置の決定に使う。候補がなければ null を返す。
+        /// </summary>
+        public Vector3? GetRandomAlivePosition(float excludeRadius, Vector3 playerPos)
+        {
+            float excludeSqr = excludeRadius * excludeRadius;
+            int seen = 0;
+            Vector3 picked = default;
+            for (int x = 0; x < _gridWidth; x++)
+            {
+                for (int z = 0; z < _gridDepth; z++)
+                {
+                    if (_tiles[x, z] == null || _tiles[x, z].IsCollapsed) continue;
+                    var worldPos = GridToWorld(x, z);
+                    float dx = worldPos.x - playerPos.x;
+                    float dz = worldPos.z - playerPos.z;
+                    if (dx * dx + dz * dz <= excludeSqr) continue;
+                    if (Random.Range(0, ++seen) == 0)
+                        picked = worldPos + Vector3.up * 0.5f;
+                }
+            }
+            return seen == 0 ? null : picked;
+        }
+
         private Vector3 GridToWorld(int x, int z)
         {
             // グリッド原点をFloorGridオブジェクトの位置に合わせる

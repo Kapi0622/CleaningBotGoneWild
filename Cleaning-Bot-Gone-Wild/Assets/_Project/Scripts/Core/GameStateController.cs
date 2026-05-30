@@ -16,6 +16,9 @@ namespace CleaningBot.Core
         public readonly TimerModel TimerModel;
         public readonly Transform PlayerTransform;
 
+        /// <summary>InGameState / BonusState が落下判定に使う。Startup.cs から SetPlayerRespawner() で注入する。</summary>
+        public PlayerRespawner PlayerRespawner { get; private set; }
+
         private readonly Subject<IGameState> _onStateChanged = new();
         public Observable<IGameState> OnStateChanged => _onStateChanged;
 
@@ -29,6 +32,8 @@ namespace CleaningBot.Core
             TimerModel       = timerModel;
             PlayerTransform  = playerTransform;
         }
+
+        public void SetPlayerRespawner(PlayerRespawner respawner) => PlayerRespawner = respawner;
 
         public void ChangeState(IGameState next)
         {

@@ -105,9 +105,20 @@ namespace CleaningBot.Core
             var gameStateController = new GameStateController(_gameTimer, timerModel, _playerLocomotion.transform);
             _gameSceneController.SetController(gameStateController);
 
-            // 4. StageInitializer でゴミ・住人を生成し、GarbageTracker を初期化
+            // 4. PlayerRespawner を生成し GameStateController に注入
+            var playerRespawner = new PlayerRespawner();
+            playerRespawner.Initialize(_playerLocomotion, timerModel, stageData, stageData.playerStartPosition);
+            gameStateController.SetPlayerRespawner(playerRespawner);
+
+            // 4b. BonusGarbageSpawner を生成（FloorGrid は最初の部屋を使用）
+            var bonusSpawner = new BonusGarbageSpawner();
+            bonusSpawner.Initialize(_floorGrids[0], scoreModel, stageData, _playerLocomotion.transform);
+
+            // 4c. StageInitializer でゴミ・住人を生成し、GarbageTracker を初期化
             _stageInitializer.Initialize(stageData, garbageModel, scoreModel, _playerLocomotion.transform);
-            var garbageTracker = new GarbageTracker(garbageModel, scoreModel, gameStateController);
+            var garbageTracker = new GarbageTracker(
+                garbageModel, scoreModel, gameStateController,
+                timerModel, stageData, bonusSpawner);
             garbageTracker.Initialize();
 
             // 4b. 全 FloorGrid に ScoreModel を登録（床崩壊時の被害総額加算）
@@ -125,8 +136,8 @@ namespace CleaningBot.Core
             var stageResetter = new StageResetter(
                 scoreModel, timerModel, weaponModel, garbageModel,
                 _floorGrids, _stageInitializer, garbageTracker,
-                _playerLocomotion.transform, stageData, gameStateController,
-                _weaponController,
+                gameStateController,
+                _weaponController, playerRespawner, bonusSpawner,
                 _screenFadeView, _countdownView, _resultView, _timerView, _garbageView,
                 cameraDirector, startRoom);
 

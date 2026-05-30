@@ -114,6 +114,15 @@ namespace CleaningBot.Player
             }
         }
 
+        /// <summary>
+        /// PlayerRespawner から呼ばれる。速度をゼロにしてからリスポーン位置へ瞬間移動する。
+        /// </summary>
+        public void Teleport(Vector3 position)
+        {
+            _rb.linearVelocity = Vector3.zero;
+            _rb.position = position;
+        }
+
         private void OnCollisionEnter(Collision collision)
         {
             if (((1 << collision.gameObject.layer) & _groundLayer) != 0)
