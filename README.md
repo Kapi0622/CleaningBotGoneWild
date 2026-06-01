@@ -9,7 +9,8 @@
 ![Status](https://img.shields.io/badge/Status-開発中-yellow)
 
 > 📸 ゲームプレイ画像・GIF 準備中
-
+プロトタイプ段階でのプレイ動画
+https://www.youtube.com/watch?v=G3Om5RjgxmE
 ---
 
 ## ゲーム概要
